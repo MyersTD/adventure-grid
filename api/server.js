@@ -3,13 +3,14 @@ const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
 const Pool = require('pg').Pool
+const CONFIG = require('./config/config.json')
 
 const db = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'adventure-grid',
-  password: 'sgs335W!7',
-  port: 5432,
+  user: CONFIG.user,
+  host: CONFIG.host,
+  database: CONFIG.database,
+  password: CONFIG.password,
+  port: CONFIG.port,
 })
 
 app.use(function(req, res, next) {
