@@ -379,7 +379,7 @@ export class RoomPage {
       this.mode = "token";
     }
 
-    setupCanvas(width, height) : void
+    setupCanvas(width, height)
     {
        this._CONTEXT = this._CANVAS.getContext('2d');
        this._BGCONTEXT = this._BGCANVAS.getContext('2d');
@@ -411,10 +411,14 @@ export class RoomPage {
        this._BGCONTEXT.stroke()
     }
 
-    clearCanvas() : void
+    clearCanvas()
     {
        this._CONTEXT.clearRect(0, 0, this._CANVAS.width, this._CANVAS.height);
        this.setupCanvas(this._CANVAS.width, this._CANVAS.height);
        this.manager.save()
+    }
+
+    goHome() {
+      this.router.navigate(['home'])
     }
 }

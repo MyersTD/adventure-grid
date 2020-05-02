@@ -51,4 +51,8 @@ export class HomePage {
         this.router.navigate(['room', {'id': id}]);
       })
     }
+
+    goHome() {
+      this.router.navigate(['home'])
+    }
 }

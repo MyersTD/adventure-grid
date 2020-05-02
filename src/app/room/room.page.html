@@ -1,8 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      AdventureGrid    
-    </ion-title>
+      <button style="background-color: transparent;" (click)="goHome()">
+        <ion-title style="color: white;">
+          Adventure Grid
+        </ion-title>
+      </button>
   </ion-toolbar>
 </ion-header>
 
@@ -19,7 +21,6 @@
         :height="height"></canvas>
    </div>
   </div>
-
 
   <div class="tool-container">
     <ion-row>
