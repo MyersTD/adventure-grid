@@ -8,18 +8,11 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
-  
-  <div id="container">
-    <div id="slide">
-        <canvas #bgcanvas class="background-canvas"
-        :width="width"
-        :height="height"></canvas>
-
-        <canvas #canvas class="main-canvas" 
-        :width="width"
-        :height="height"></canvas>
-   </div>
+<ion-content padding style="background-color: beige;">
+  <div class="container">
+    <canvas #bgcanvas class="bg-canvas"></canvas>
+    <canvas #canvas class="main-canvas"></canvas>
+    <canvas #gridcanvas class="bg-canvas"></canvas>
   </div>
 
   <div class="tool-container">
@@ -47,6 +40,13 @@
       </ion-button>
     </ion-row>
   </div>
+
+  <div class="background-button">
+    <ion-button (click)="setBackground()">
+      Set Background
+    </ion-button>
+  </div>
+
   <div class="palette-container">
     <button class="palette-button" style="background-color: red;" (click)="selectColor($event)"></button>
     <button class="palette-button" style="background-color: blue;" (click)="selectColor($event)"></button>
@@ -55,6 +55,11 @@
     <button class="palette-button" style="background-color: black;" (click)="selectColor($event)"></button>
     <button class="palette-button" style="background-color: grey;" (click)="selectColor($event)"></button>
     <button class="palette-button" style="background-color: white;" (click)="selectColor($event)"></button>
+    <button class="palette-button" style="background-color: beige;" (click)="selectColor($event)"></button>
   </div>
+  <div  class="grid-button">
+    <ion-button (click)="hideGrid()">Grid</ion-button>
+  </div>
+
 
 </ion-content>

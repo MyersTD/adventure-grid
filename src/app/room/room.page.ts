@@ -111,26 +111,25 @@ class save_scum  {
 export class RoomPage {
     @ViewChild('canvas', {static: false}) canvasEl : ElementRef;
     @ViewChild('bgcanvas', {static: false}) bgCanvasEl : ElementRef;
+    @ViewChild('gridcanvas', {static: false}) gridCanvasEl : ElementRef;
+
     private _CANVAS  : any;
     private _BGCANVAS : any;
     private _CONTEXT : any;
     private _BGCONTEXT : any;
+    private _GRIDCANVAS : any;
+    private _GRIDCONTEXT : any;
     private drawing = false;
     private panning = false;
     private offset = [0, 0]
     private selectedColor = 'black'
     private mode = 'draw';
     private s_id: number;
-    private lastX;
-    private lastY;
+    private lastDragX;
     private manager: save_scum;
     private socket;
 
     constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) {}
-
-    socketConnect() {
-
-    }
 
     ionViewDidEnter() : void 
     {
@@ -142,12 +141,29 @@ export class RoomPage {
     }
 
     setup() {
-      this._CANVAS 		      = this.canvasEl.nativeElement;
-      this._BGCANVAS        = this.bgCanvasEl.nativeElement;
-      this._CANVAS.width  	= 1024;
-      this._CANVAS.height 	= 1024;
-      this._BGCANVAS.width  	= 1024;
+      this._CANVAS 		        = this.canvasEl.nativeElement;
+      this._BGCANVAS          = this.bgCanvasEl.nativeElement;
+      this._GRIDCANVAS        = this.gridCanvasEl.nativeElement;
+      this._CANVAS.width  	  = 2048;
+      this._CANVAS.height 	  = 1024;
+      this._BGCANVAS.width  	= 2048;
       this._BGCANVAS.height 	= 1024;
+      this._GRIDCANVAS.width  = 2048;
+      this._GRIDCANVAS.height = 1024;
+
+      this._GRIDCANVAS.addEventListener('mousedown', e => {
+        this.mouseDownEvent(e);
+      })
+
+      this._GRIDCANVAS.addEventListener('mousemove', e => {
+        this.mouseMoveEvent(e);
+      })
+
+      this._GRIDCANVAS.addEventListener('mouseup', e => {
+        this.mouseUpEvent(e);
+      })
+
+      this._GRIDCANVAS.addEventListener('contextmenu', e => e.preventDefault());
 
       this._CANVAS.addEventListener('mousedown', e => {
         this.mouseDownEvent(e);
@@ -175,8 +191,6 @@ export class RoomPage {
         case 1:
           this.drawing = true;
           var pos = this.getSquare(e);
-          this.lastX = pos.x;
-          this.lastY = pos.y;
           this._CONTEXT.beginPath();
           switch(this.mode) {
             case 'pencil':
@@ -193,11 +207,9 @@ export class RoomPage {
           break;
         // middle click
         case 2:
+          e.preventDefault();
           this.panning = true;
-          this.offset = [
-            this._CANVAS.offsetLeft - e.clientX,
-            this._CANVAS.offsetTop - e.clientY
-          ];
+          this.lastDragX = e.clientX - this._CANVAS.offsetLeft;
           break;
         // right click
         case 3:
@@ -211,7 +223,6 @@ export class RoomPage {
     mouseMoveEvent(e) {
       event.preventDefault();
       switch(e.which) {
-
         // left click
         case 1:
           this.drawing = true;
@@ -229,11 +240,17 @@ export class RoomPage {
         // middle click
         case 2:
           if (!this.panning) return;
-          var panPos = this.getPanDirection(e)
-          this._CANVAS.style.left =  (panPos.x + this.offset[0]) + 'px';
-          this._CANVAS.style.top = (panPos.y + this.offset[1] + 'px');
-          this._BGCANVAS.style.left =  (panPos.x + this.offset[0]) + 'px';
-          this._BGCANVAS.style.top = (panPos.y + this.offset[1] + 'px');
+          var styleLeft = (e.clientX - this.lastDragX) + 'px';
+          var styleRight = (e.clientX + this.lastDragX) + 'px';
+
+          this._CANVAS.style.left =  styleLeft;
+          this._CANVAS.style.right = styleRight;
+
+          this._BGCANVAS.style.right = styleRight;
+          this._BGCANVAS.style.left =  styleLeft;
+
+          this._GRIDCANVAS.style.right = styleRight;
+          this._GRIDCANVAS.style.left = styleLeft;
           break;
 
         // right click
@@ -257,18 +274,13 @@ export class RoomPage {
       }
     }
 
-    getPanDirection(e) {
-      return  {
-        x: e.clientX,
-        y: e.clientY
-      }
-    }
-
     getSquare(e) {
       var x1 = e.offsetX
       var y1 = e.offsetY
-      var x2 = Math.floor(e.offsetX / squareSize -.2) * squareSize + (squareSize / 10)
-      var y2 = Math.floor(e.offsetY / squareSize -.2) * squareSize + (squareSize / 10)
+      
+      var vD =  10
+      var x2 = 1 +  (Math.floor(e.offsetX / squareSize -.2) * squareSize + (squareSize / vD))
+      var y2 = (Math.floor(e.offsetY / squareSize -.2) * squareSize + (squareSize / vD)) - 1
       var dx = x2 - x1
       var dy = y2 - y1
       if (debug) {
@@ -278,10 +290,10 @@ export class RoomPage {
       var pos;
       var aDy = Math.abs(dy)
       var aDx = Math.abs(dx)
-      if (aDy < (squareSize / 10) && (aDx > (squareSize / 10) && aDx < squareSize - (squareSize / 10))) pos = "top"
-      else if (aDy > squareSize - (squareSize / 10) && (aDx > (squareSize / 10) && aDx < squareSize - (squareSize / 10))) pos = "bottom"
-      else if (aDx < (squareSize / 10) && (aDy > (squareSize / 10) && aDy < squareSize - (squareSize / 10))) pos = "left"
-      else if (aDx > squareSize - (squareSize / 10) && (aDy > (squareSize / 10) && aDy < squareSize - (squareSize / 10))) pos = "right"
+      if (aDy < (squareSize / vD) && (aDx > (squareSize / vD) && aDx < squareSize - (squareSize / vD))) pos = "top"
+      else if (aDy > squareSize - (squareSize / vD) && (aDx > (squareSize / vD) && aDx < squareSize - (squareSize / vD))) pos = "bottom"
+      else if (aDx < (squareSize / vD) && (aDy > (squareSize / vD) && aDy < squareSize - (squareSize / vD))) pos = "left"
+      else if (aDx > squareSize - (squareSize / vD) && (aDy > (squareSize / vD) && aDy < squareSize - (squareSize / vD))) pos = "right"
       if (debug) console.log(pos)
       return {
           x: x2,
@@ -292,7 +304,7 @@ export class RoomPage {
 
     erase(x, y, dir, mode) {
       if (!this.drawing) return;
-      if (mode == 'line') this._CONTEXT.clearRect(x - 1, y - 1, squareSize + 2, squareSize+ 2)
+      if (mode == 'line') this._CONTEXT.clearRect(x, y, squareSize, squareSize)
       else this._CONTEXT.clearRect(x, y, squareSize, squareSize)
     }
 
@@ -302,7 +314,7 @@ export class RoomPage {
       this._CONTEXT.strokeStyle = color;
       this._CONTEXT.lineWidth = 1.5;
       if (mode == 'draw') {
-        this._CONTEXT.fillRect(x, y, squareSize - 1, squareSize - 1)
+        this._CONTEXT.fillRect(x, y, squareSize, squareSize)
       }
       if (mode == 'pencil') {
         //Draw a line
@@ -379,10 +391,19 @@ export class RoomPage {
       this.mode = "token";
     }
 
+    hideGrid() {
+      if (this._GRIDCANVAS.style.visibility == 'hidden') {
+        this._GRIDCANVAS.style.visibility = 'visible';
+      } else {
+        this._GRIDCANVAS.style.visibility = 'hidden'
+      }
+    }
+
     setupCanvas(width, height)
     {
        this._CONTEXT = this._CANVAS.getContext('2d');
        this._BGCONTEXT = this._BGCANVAS.getContext('2d');
+       this._GRIDCONTEXT = this._GRIDCANVAS.getContext('2d');
        this._BGCONTEXT.fillStyle = "beige";
        this._BGCONTEXT.fillRect(0, 0, width, height);
 
@@ -398,17 +419,22 @@ export class RoomPage {
        let pB = height - nY * squareSize - pT // padding bottom
 
        for (var x = pL; x <= width - pR; x += squareSize) {
-        this._BGCONTEXT.moveTo(x, pT)
-        this._BGCONTEXT.lineTo(x, height - pB)
+        this._GRIDCONTEXT.moveTo(x, pT)
+        this._GRIDCONTEXT.lineTo(x, height - pB)
        }
 
        for (var y = pT; y <= height - pB; y += squareSize) {
-        this._BGCONTEXT.moveTo(pL, y)
-        this._BGCONTEXT.lineTo(width - pR, y)
+        this._GRIDCONTEXT.moveTo(pL, y)
+        this._GRIDCONTEXT.lineTo(width - pR, y)
        }
 
-       this._BGCONTEXT.strokeStyle = "#ddd"
-       this._BGCONTEXT.stroke()
+       this._GRIDCONTEXT.strokeStyle = "#ddd"
+       this._GRIDCONTEXT.stroke()
+    }
+
+    setBackground() {
+      this._BGCONTEXT.fillStyle = this.selectedColor;
+      this._BGCONTEXT.fillRect(0, 0, this._BGCANVAS.width, this._BGCANVAS.height)
     }
 
     clearCanvas()

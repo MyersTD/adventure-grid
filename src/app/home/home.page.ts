@@ -16,9 +16,6 @@ import { Request } from '../requests';
   providers: [Request]
 })
 export class HomePage {
-    @ViewChild('canvas', {static: false}) canvasEl : ElementRef;
-    @ViewChild('bgcanvas', {static: false}) bgCanvasEl : ElementRef;
-  
     s_id: any;
     sessions: Array<any>
 
