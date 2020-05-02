@@ -7,12 +7,11 @@
 function createSession(req, db, callback) {
     var s_id = req.body.s_id;
     var history = req.body.history;
-    var historyjson = JSON.stringify({history: history})
     console.log(s_id)
     db.query(
         `INSERT INTO sessions
         (sessionid, history)
-        VALUES (${s_id}, '${historyjson}')`,
+        VALUES (${s_id}, '${history}')`,
         (err, res) => {
             if (err) {
                 console.log(err);

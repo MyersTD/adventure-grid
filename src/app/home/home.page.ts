@@ -44,4 +44,11 @@ export class HomePage {
     enterServer(e, session) {
       this.router.navigate(['room', {'id': session.sessionid}])
     }
+
+    createSession() {
+      let id = Math.floor(Math.random() * 100000000)
+      this.request.CreateSession(id, '', (response) => {
+        this.router.navigate(['room', {'id': id}]);
+      })
+    }
 }
