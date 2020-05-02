@@ -9,6 +9,7 @@ import { sizeof } from '../sizeof.compressed';
 import { Storage, IonicStorageModule } from '@ionic/storage';
 import { Request } from '../requests';
 import * as io from 'socket.io-client';
+import { canvasCell } from './canvasCell.components';
 
 let squareSize = 20
 let debug = false;
@@ -16,24 +17,18 @@ let debug = false;
 class save_scum  {
   save_list: Array<any>
   step = -1
-  canvas: HTMLCanvasElement;
-  context: any;
-  socket: any;
-  s_id: any;
+  object: any;
 
-  constructor(canvas, context, socket, s_id) {
+  constructor(page) {
     this.save_list = new Array<any>();
-    this.canvas = canvas;
-    this.context = context;
-    this.socket = socket;
-    this.s_id = s_id;
+    this.object = page;
 
-    this.socket=io('localhost:3001');
+    this.object.socket=io('localhost:3001');
 
-    this.socket.on('connect', () => {
-      this.socket.emit('room', ''+this.s_id)
-      this.socket.emit('get last art', ''+this.s_id)
-      this.socket.on('published art', (data) => {
+    this.object.socket.on('connect', () => {
+      this.object.socket.emit('room', ''+this.object.s_id)
+      this.object.socket.emit('get last art', ''+this.object.s_id)
+      this.object.socket.on('published art', (data) => {
         if (data != null) {
           this.load(data);
         } else {
@@ -53,9 +48,12 @@ class save_scum  {
   save () {
     this.cleanArray(this.step + 1)
     this.step++;
-    this.save_list.push(this.canvas.toDataURL("image/png"));
-    console.log(sizeof(this.canvas.toDataURL("image/png")))
-    this.socket.emit('publish', {room: this.s_id, history: this.save_list[this.step]})
+    this.save_list.push(this.object._CANVAS.toDataURL("image/png"));
+    console.log(sizeof(this.object._CANVAS.toDataURL("image/png")))
+
+    let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
+
+    this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
 
     if (debug) { 
       console.log(this.save_list, this.step)
@@ -65,11 +63,17 @@ class save_scum  {
 
   load (data) {
     let snapshot = new Image();
-    snapshot.src = data;
-    snapshot.onload = () => {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.context.drawImage(snapshot, 0, 0, this.canvas.width, this.canvas.height)
+    if (data.tokens) {
+      let tokens = new Map(JSON.parse(data.tokens));
+        this.object.tokenMap = tokens;
+        this.object.drawAllTokens();
     }
+    snapshot.src = data.history;
+    snapshot.onload = () => {
+      this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
+      this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+    }
+
   }
 
   undo () {
@@ -77,9 +81,9 @@ class save_scum  {
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
       snapshot.onload = () => {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.drawImage(snapshot, 0, 0, this.canvas.width, this.canvas.height)
-        this.socket.emit('publish', {room: this.s_id, history: this.save_list[this.step]})
+        this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
+        this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step]})
       }
       this.step--;
       if (debug) console.log(this.save_list, this.step)
@@ -92,15 +96,29 @@ class save_scum  {
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
       snapshot.onload = () => {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.context.drawImage(snapshot, 0, 0, this.canvas.width, this.canvas.height)
-        this.socket.emit('publish', {room: this.s_id, history: this.save_list[this.step]})
+        this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
+        this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step]})
       }
       if (debug) console.log(this.save_list, this.step)
     }
   }
 }
 
+
+class Token {
+  x : any;
+  y : any;
+  shape : any;
+  color : any;
+  name : any;
+  constructor (x, y, shape, color) {
+    this.x = x;
+    this.y = y;
+    this.shape = shape;
+    this.color = color;
+  }
+}
 
 @Component({
   selector: 'app-room',
@@ -112,31 +130,42 @@ export class RoomPage {
     @ViewChild('canvas', {static: false}) canvasEl : ElementRef;
     @ViewChild('bgcanvas', {static: false}) bgCanvasEl : ElementRef;
     @ViewChild('gridcanvas', {static: false}) gridCanvasEl : ElementRef;
-
+    @ViewChild('tokencanvas', {static: false}) tokenCanvasEl : ElementRef;
     private _CANVAS  : any;
     private _BGCANVAS : any;
     private _CONTEXT : any;
     private _BGCONTEXT : any;
     private _GRIDCANVAS : any;
     private _GRIDCONTEXT : any;
+    private _TOKENCANVAS : any;
+    private _TOKENCONTEXT : any;
     private drawing = false;
     private panning = false;
-    private offset = [0, 0]
     private selectedColor = 'black'
     private mode = 'draw';
     private s_id: number;
     private lastDragX;
     private manager: save_scum;
     private socket;
+    private canvasList: Array<any>;
+    private tokenMap: Map<string, Token>;
+    private draggingToken = false;
+    private grabbedToken: any;
+    private lastTokenX: any;
+    private lastTokenY: any;
 
-    constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) {}
+    constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) 
+    {
+      this.canvasList = new Array<any>();
+      this.tokenMap = new Map<string, Token>();
+    }
 
     ionViewDidEnter() : void 
-    {
+    {      
       this.setup();
       this.route.params.subscribe(params => {
         this.s_id = params['id'];
-        this.manager = new save_scum(this._CANVAS, this._CONTEXT, this.socket, this.s_id);
+        this.manager = new save_scum(this);
       });
     }
 
@@ -144,40 +173,40 @@ export class RoomPage {
       this._CANVAS 		        = this.canvasEl.nativeElement;
       this._BGCANVAS          = this.bgCanvasEl.nativeElement;
       this._GRIDCANVAS        = this.gridCanvasEl.nativeElement;
-      this._CANVAS.width  	  = 2048;
-      this._CANVAS.height 	  = 1024;
-      this._BGCANVAS.width  	= 2048;
-      this._BGCANVAS.height 	= 1024;
-      this._GRIDCANVAS.width  = 2048;
-      this._GRIDCANVAS.height = 1024;
+      this._TOKENCANVAS       = this.tokenCanvasEl.nativeElement;
+      this._CONTEXT           = this._CANVAS.getContext('2d');
+      this._BGCONTEXT         = this._BGCANVAS.getContext('2d');
+      this._GRIDCONTEXT       = this._GRIDCANVAS.getContext('2d');
+      this._TOKENCONTEXT      = this._TOKENCANVAS.getContext('2d');
 
-      this._GRIDCANVAS.addEventListener('mousedown', e => {
-        this.mouseDownEvent(e);
+      this.canvasList.push({canvas: this._CANVAS, context: this._CONTEXT})
+      this.canvasList.push({canvas: this._BGCANVAS, context: this._BGCONTEXT})
+      this.canvasList.push({canvas: this._GRIDCANVAS, context: this._GRIDCONTEXT})
+      this.canvasList.push({canvas: this._TOKENCANVAS, context: this._TOKENCONTEXT})
+
+      this.canvasList.forEach(ele => {
+        ele.canvas.width = 2048;
+        ele.canvas.height = 1024;
+
+        ele.canvas.addEventListener('dblclick', e => {
+          this.mouseDoubleClickEvent(e);
+        })
+
+        ele.canvas.addEventListener('mousedown', e => {
+          this.mouseDownEvent(e);
+        })
+  
+        ele.canvas.addEventListener('mousemove', e => {
+          this.mouseMoveEvent(e);
+        })
+
+        ele.canvas.addEventListener('mouseup', e => {
+          this.mouseUpEvent(e);
+        })
+  
+        ele.canvas.addEventListener('contextmenu', e => e.preventDefault());
+  
       })
-
-      this._GRIDCANVAS.addEventListener('mousemove', e => {
-        this.mouseMoveEvent(e);
-      })
-
-      this._GRIDCANVAS.addEventListener('mouseup', e => {
-        this.mouseUpEvent(e);
-      })
-
-      this._GRIDCANVAS.addEventListener('contextmenu', e => e.preventDefault());
-
-      this._CANVAS.addEventListener('mousedown', e => {
-        this.mouseDownEvent(e);
-      })
-
-      this._CANVAS.addEventListener('mousemove', e => {
-        this.mouseMoveEvent(e);
-      })
-
-      this._CANVAS.addEventListener('mouseup', e => {
-        this.mouseUpEvent(e);
-      })
-
-      this._CANVAS.addEventListener('contextmenu', e => e.preventDefault());
 
       if(this._CANVAS.getContext)
       {
@@ -185,23 +214,48 @@ export class RoomPage {
       }
     }
 
+    mouseDoubleClickEvent(e) {
+      var pos = this.getSquare(e);
+      console.log('Double click', pos.x, pos.y)
+      switch (e.which) {
+        case 1:
+          switch (this.mode) {
+            case 'token':
+              let key = pos.x.toString()+','+pos.y.toString();
+              if (this.tokenMap.has(key)) {
+                this.nameToken(this.tokenMap.get(key));
+              }
+              break;
+          }
+        break;
+      }
+    }
+
     mouseDownEvent(e) {
+      var pos = this.getSquare(e);
       switch(e.which) {
         // left click
         case 1:
           this.drawing = true;
-          var pos = this.getSquare(e);
           this._CONTEXT.beginPath();
           switch(this.mode) {
             case 'pencil':
               this._CONTEXT.moveTo(e.offsetX, e.offsetY)
-              this.draw(e.offsetX, e.offsetY, pos.dir, this.selectedColor, this.mode);
+              this.draw(pos.x, pos.y, pos.dir, this.selectedColor, this.mode);
               break;
             case 'draw':
               this.draw(pos.x, pos.y, pos.dir, this.selectedColor, this.mode);
               break;
             case 'token':
-              this.token(pos.x, pos.y, this.selectedColor);
+              let key = pos.x.toString()+','+pos.y.toString()
+              if (this.tokenMap.has(key)) {
+                this.draggingToken = true;
+                this.grabbedToken = this.tokenMap.get(key)
+                this.lastTokenX = this.grabbedToken.x;
+                this.lastTokenY = this.grabbedToken.y;
+              } else {
+                this.token(pos.x, pos.y, this.selectedColor);
+              }
               break;
           }
           break;
@@ -213,9 +267,21 @@ export class RoomPage {
           break;
         // right click
         case 3:
-          this.drawing = true;
-          var pos = this.getSquare(e);
-          this.erase(pos.x, pos.y, pos.dir, this.mode);
+          switch (this.mode) {
+            case 'token':
+              let key = pos.x.toString()+','+pos.y.toString()
+              if (this.tokenMap.has(key)) {
+                this.tokenMap.delete(key)
+                this.drawAllTokens();
+              }
+              break;
+            case 'line':
+            case 'draw':
+            case 'pencil':
+              this.drawing = true;
+              var pos = this.getSquare(e);
+              break;
+          }
           break;
       }
     }
@@ -235,6 +301,9 @@ export class RoomPage {
             case 'draw':
               this.draw(pos.x, pos.y, pos.dir, this.selectedColor, this.mode)
           }
+          if (this.draggingToken) {
+            this.dragToken(e);
+          }
           break;
 
         // middle click
@@ -243,22 +312,21 @@ export class RoomPage {
           var styleLeft = (e.clientX - this.lastDragX) + 'px';
           var styleRight = (e.clientX + this.lastDragX) + 'px';
 
-          this._CANVAS.style.left =  styleLeft;
-          this._CANVAS.style.right = styleRight;
-
-          this._BGCANVAS.style.right = styleRight;
-          this._BGCANVAS.style.left =  styleLeft;
-
-          this._GRIDCANVAS.style.right = styleRight;
-          this._GRIDCANVAS.style.left = styleLeft;
+          this.canvasList.forEach(ele => {
+            ele.canvas.style.left = styleLeft;
+            ele.canvas.style.right = styleRight;
+          })
           break;
 
         // right click
         case 3:
-          this.drawing = true;
-          var pos = this.getSquare(e);
-          this.erase(pos.x, pos.y, pos.dir, this.mode);
+          if (this.mode != 'token') {
+            this.drawing = true;
+            var pos = this.getSquare(e);
+            this.erase(pos.x, pos.y, pos.dir, this.mode);
+          }
           break;
+
       }
     }
 
@@ -267,6 +335,19 @@ export class RoomPage {
         case 1:
         case 3:
           this.drawing = false;
+          if (this.draggingToken == true) {
+            this.draggingToken = false;
+            let newKey = this.grabbedToken.x.toString()+','+this.grabbedToken.y.toString()
+            if (this.tokenMap.has(newKey)) {
+              this.grabbedToken.x = this.lastTokenX;
+              this.grabbedToken.y = this.lastTokenY;
+              this.drawAllTokens();
+            } else {
+              let lastKey = this.lastTokenX.toString()+','+this.lastTokenY.toString();
+              this.tokenMap.delete(lastKey)
+              this.tokenMap.set(newKey, this.grabbedToken)  
+            }
+          }
           if (this.mode == 'line') this._CONTEXT.closePath()
           this.manager.save();
         case 2:
@@ -274,10 +355,13 @@ export class RoomPage {
       }
     }
 
+    nameToken(token) {
+
+    }
+
     getSquare(e) {
       var x1 = e.offsetX
       var y1 = e.offsetY
-      
       var vD =  10
       var x2 = 1 +  (Math.floor(e.offsetX / squareSize -.2) * squareSize + (squareSize / vD))
       var y2 = (Math.floor(e.offsetY / squareSize -.2) * squareSize + (squareSize / vD)) - 1
@@ -352,13 +436,36 @@ export class RoomPage {
     }
 
     token(x, y, color) {
-      this._CONTEXT.beginPath();
-      this._CONTEXT.arc(x + (squareSize/2), y + (squareSize/2), (squareSize/2) - 2, 0, 2 * Math.PI, false);
-      this._CONTEXT.fillStyle = color;
-      this._CONTEXT.fill();
-      this._CONTEXT.strokeStyle = 'black';
-      this._CONTEXT.lineWidth = 2;
-      this._CONTEXT.stroke();
+      let newToken = new Token(x, y, 'circle', color);
+      this.tokenMap.set(x.toString()+','+y.toString(), newToken)
+      this.drawToken(newToken);
+    }
+
+    drawToken(token) {
+      this._TOKENCONTEXT.beginPath();
+      this._TOKENCONTEXT.arc(token.x + (squareSize/2), token.y + (squareSize/2), (squareSize/2) - 2, 0, 2 * Math.PI, false);
+      this._TOKENCONTEXT.fillStyle = token.color;
+      this._TOKENCONTEXT.strokeStyle = 'black';
+      this._TOKENCONTEXT.lineWidth = 2;
+      this._TOKENCONTEXT.closePath();
+      this._TOKENCONTEXT.fill();
+      this._TOKENCONTEXT.stroke();
+    }
+
+    dragToken(e) {
+      let pos = this.getSquare(e)
+      if (this.draggingToken) {
+        this.grabbedToken.x = pos.x
+        this.grabbedToken.y = pos.y
+      }
+      this.drawAllTokens();
+    }
+
+    drawAllTokens() {
+      this._TOKENCONTEXT.clearRect(0, 0, this._TOKENCANVAS.width, this._TOKENCANVAS.height);
+      this.tokenMap.forEach(token => {
+        this.drawToken(token);
+      })
     }
 
     redo() {
@@ -401,9 +508,6 @@ export class RoomPage {
 
     setupCanvas(width, height)
     {
-       this._CONTEXT = this._CANVAS.getContext('2d');
-       this._BGCONTEXT = this._BGCANVAS.getContext('2d');
-       this._GRIDCONTEXT = this._GRIDCANVAS.getContext('2d');
        this._BGCONTEXT.fillStyle = "beige";
        this._BGCONTEXT.fillRect(0, 0, width, height);
 
@@ -440,6 +544,8 @@ export class RoomPage {
     clearCanvas()
     {
        this._CONTEXT.clearRect(0, 0, this._CANVAS.width, this._CANVAS.height);
+       this._TOKENCONTEXT.clearRect(0, 0, this._CANVAS.width, this._CANVAS.height);
+       this.tokenMap.clear();
        this.setupCanvas(this._CANVAS.width, this._CANVAS.height);
        this.manager.save()
     }

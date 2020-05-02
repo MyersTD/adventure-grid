@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { RoomPageRoutingModule } from './room-routing.module';
 
 import { RoomPage } from './room.page';
+import { CanvasCellPageModule } from './canvasCell.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    RoomPageRoutingModule
+    RoomPageRoutingModule,
+    CanvasCellPageModule
   ],
   declarations: [RoomPage]
 })
