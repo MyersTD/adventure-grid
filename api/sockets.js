@@ -1,6 +1,4 @@
 var io = require('socket.io'), http = require('http')
-const redis = require('redis');
-const client = redis.createClient();
 
 const Pool = require('pg').Pool
 const CONFIG = require('./config/config.json')
@@ -12,8 +10,6 @@ const db = new Pool({
   password: CONFIG.password,
   port: CONFIG.port,
 })
-
-
 
 server = http.createServer()
 
@@ -38,15 +34,14 @@ function onConnect(socket) {
       (err, res) => {
           if (err) {
               console.log(err);
-          } 
-      }
-  )
+          }
+      })
   })
 
   socket.on('publish', function(data) {
     db.query(
       `UPDATE sessions
-      SET history = '${data.history}'
+      SET history = '${data.history}', tokens = '${data.tokens}'
       WHERE sessionid = ${data.room}`,
       (err, res) => {
           if (err) { 
@@ -54,17 +49,15 @@ function onConnect(socket) {
               io.to(data.room).emit('published art', null);
           }
           else {
-              io.to(data.room).emit('published art', data.history);
+              io.to(data.room).emit('published art', data);
           }
       }
     )
   })
 
-  
-
   socket.on('get last art', function(s_id) {
     db.query(
-      `SELECT history 
+      `SELECT history, tokens 
       FROM sessions
       WHERE sessionid = ${s_id}`,
       (err, res) => {
@@ -74,7 +67,7 @@ function onConnect(socket) {
           }
           else {
             if (res.rows[0]) {
-              io.to(s_id).emit('published art', res.rows[0].history);
+              io.to(s_id).emit('published art', {history: res.rows[0].history, tokens: res.rows[0].tokens});
             } else {
               io.to(s_id).emit('published art', null);
             }

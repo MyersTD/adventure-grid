@@ -1,0 +1,7 @@
+{
+    "user": "postgres",
+    "host": "localhost",
+    "database": "adventure-grid",
+    "password": "sgs335W!7",
+    "port": 5432
+}
