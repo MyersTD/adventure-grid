@@ -4,14 +4,15 @@
     history
 */
 
-
 function createSession(req, db, callback) {
     var s_id = req.body.s_id;
     var history = req.body.history;
+    var historyjson = JSON.stringify({history: history})
+    console.log(s_id)
     db.query(
         `INSERT INTO sessions
         (sessionid, history)
-        VALUES (${s_id}, ${history}))`,
+        VALUES (${s_id}, '${historyjson}')`,
         (err, res) => {
             if (err) {
                 console.log(err);
@@ -42,13 +43,30 @@ function getHistory(req, db, callback) {
     )
 }
 
+function getAllSessions(req, db, callback) {
+    db.query(
+        `SELECT sessionid
+        FROM sessions`,
+        (err, res) => {
+            if (err) {
+                console.log(err);
+                callback(err, null);
+            }
+            else {
+                callback(null, res.rows);
+            }
+        }
+    )
+}
+
 function saveHistory(req, db, callback) {
     var s_id = req.body.s_id;
     var history = req.body.history;
+    var historyjson = JSON.stringify({history: history})
     db.query(
         `UPDATE sessions
-        SET history = ${history}
-        WHERE s_id = ${s_id}`,
+        SET history = '${historyjson}'
+        WHERE sessionid = ${s_id}`,
         (err, res) => {
             if (err) { 
                 console.log(err);
@@ -64,3 +82,4 @@ function saveHistory(req, db, callback) {
 exports.create = createSession;
 exports.history = getHistory;
 exports.save = saveHistory;
+exports.all = getAllSessions;

@@ -1,7 +1,6 @@
 import { HttpClientModule, HttpClient, HttpRequest, HttpHandler } from '@angular/common/http';
 import { Http, Headers, RequestOptions } from '@angular/http';
 import { Injectable } from '@angular/core';
-import { stringify } from 'querystring';
 
 const api_url = 'localhost:3000';
 
@@ -12,8 +11,8 @@ export class Request {
     }
 
     public SaveHistory(s_id, history, callback) {
-        var body = {id: s_id, history: history}
-        this.http.post(api_url + '/api/save', body)
+        var body = {s_id: s_id, history: history}
+        this.http.post('/api/save', body)
             .subscribe((response) => {
                 callback(response)
             }
@@ -26,7 +25,7 @@ export class Request {
         header.append('s_id', s_id);
         header.append('Access-Control-Allow-Origin', '*');
         var requestOpts = new RequestOptions({ headers: header });
-        this.http.get(api_url + '/api/history', requestOpts)
+        this.http.get('/api/history', requestOpts)
         .subscribe((response) => {
             callback(response)
         }, err => {
@@ -34,12 +33,22 @@ export class Request {
         })
     }
     public CreateSession(s_id, history, callback) {
-        var body = {id: s_id, history: history}
-        this.http.post(api_url + '/api/create', body)
+        var body = {s_id: s_id, history: history}
+        this.http.post('/api/create', body)
             .subscribe((response) => {
                 callback(response);
             }
         ), err => {
+                callback(null);
+            }
+    }
+
+    public GetAllSessions(callback) {
+        this.http.get('/api/sessions') 
+            .subscribe((response) => {
+                console.log(response)
+                callback(Array<any>(response['_body']));
+            }), err => {
                 callback(null);
             }
     }

@@ -3,37 +3,25 @@ const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
 const Pool = require('pg').Pool
+const CONFIG = require('./config/config.json')
+var methodOverride = require('method-override')
+var cors = require('cors');
 
 const db = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'adventure-grid',
-  password: 'sgs335W!7',
-  port: 5432,
-})
-
-app.use(function(req, res, next) {
-  res.setHeader("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', '*');
-
-  res.setHeader("Access-Control-Allow-Headers", "*");
-      // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  next();
+  user: CONFIG.user,
+  host: CONFIG.host,
+  database: CONFIG.database,
+  password: CONFIG.password,
+  port: CONFIG.port,
 })
 
 app.use(bodyParser.json())
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-)
+app.use(cors({credentials: true, origin: '*'}))
+app.use(methodOverride());
+
 
 require('./routes')(app, db)
 
 app.listen(port, () => {
-    console.log(`Running api server on port ${port}.`);
+    console.log(`API listening on port ${port}.`);
 })

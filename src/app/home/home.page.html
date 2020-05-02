@@ -7,53 +7,7 @@
 </ion-header>
 
 <ion-content padding>
-  
-  <div id="container">
-    <div id="slide">
-        <canvas #bgcanvas class="background-canvas"
-        :width="width"
-        :height="height"></canvas>
-
-        <canvas #canvas class="main-canvas" 
-        :width="width"
-        :height="height"></canvas>
-   </div>
-  </div>
-
-
-  <div class="tool-container">
-    <ion-row>
-      <ion-button class="tool-button control-button" (click)="undo()">Undo</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button control-button" (click)="redo()">Redo</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button" (click)="selectDraw()">Square</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button" (click)="selectLine()">Line</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button" (click)="selectPencil()">Pencil</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button" (click)="selectToken()">Token</ion-button>
-    </ion-row>
-    <ion-row>
-      <ion-button class="tool-button" (click)="clearCanvas()">
-        Clear
-      </ion-button>
-    </ion-row>
-  </div>
-  <div class="palette-container">
-    <button class="palette-button" style="background-color: red;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: blue;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: yellow;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: saddlebrown;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: black;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: grey;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: white;" (click)="selectColor($event)"></button>
-  </div>
-
+  <ion-row style="margin:auto" *ngFor="let session of sessions">
+    <ion-card (click)='enterServer($event, session)' class ="server-card">{{session.sessionid}}</ion-card>
+  </ion-row>
 </ion-content>

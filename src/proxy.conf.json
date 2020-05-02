@@ -4,5 +4,11 @@
         "changeOrigin": true,
         "secure": false,
         "pathRewrite": {"^/api" : ""}
+    },
+    "/socket/*": {
+        "target": "http://localhost:3001",
+        "changeOrigin": true,
+        "secure": false,
+        "pathRewrite": {"^/socket": ""}
     }
 }

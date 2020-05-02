@@ -1,5 +1,13 @@
 {
   "name": "adventure-grid",
-  "integrations": {},
-  "type": "angular"
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular",
+  "proxies": [
+    {
+      "path": "/api/create",
+      "proxyUrl": "http://localhost:3000/api/create"
+    }
+  ]
 }
