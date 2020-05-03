@@ -72,6 +72,7 @@ class save_scum  {
         this.object.drawAllTokens();
     }
     snapshot.src = data.history;
+    this.save_list.push(data.history);
     snapshot.onload = () => {
       this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
       this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
@@ -85,12 +86,12 @@ class save_scum  {
     if (this.step != -1 && this.save_list.length > 1) {
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
-      snapshot.onload = () => {
-        this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
-        this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
-        let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
-        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
-      }
+        snapshot.onload = () => {
+          this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
+          this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+          let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
+          this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
+        }
       this.step--;
       if (debug) console.log(this.save_list, this.step)
     }
@@ -569,7 +570,6 @@ export class RoomPage {
        this._CONTEXT.clearRect(0, 0, baseWidth, baseHeight);
        this._TOKENCONTEXT.clearRect(0, 0, baseWidth, baseHeight);
        this.tokenMap.clear();
-       this.setupCanvas(baseWidth, baseHeight);
        this.manager.save()
     }
 
