@@ -10,13 +10,16 @@ import { Storage, IonicStorageModule } from '@ionic/storage';
 import { Request } from '../requests';
 import * as io from 'socket.io-client';
 import { canvasCell } from './canvasCell.components';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
-let squareSize = 20
+let squareSize = 30
 let debug = false;
+let baseHeight = 2048;
+let baseWidth = 2048;
 
 class save_scum  {
   save_list: Array<any>
-  step = -1
+  step = 0
   object: any;
 
   constructor(page) {
@@ -77,13 +80,16 @@ class save_scum  {
   }
 
   undo () {
-    if (this.step != 0 && this.save_list.length > 1) {
+    console.log(this.step)
+    console.log(this.save_list)
+    if (this.step != -1 && this.save_list.length > 1) {
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
       snapshot.onload = () => {
         this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
         this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
-        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step]})
+        let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
+        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
       }
       this.step--;
       if (debug) console.log(this.save_list, this.step)
@@ -98,7 +104,8 @@ class save_scum  {
       snapshot.onload = () => {
         this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
         this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
-        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step]})
+        let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
+        this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
       }
       if (debug) console.log(this.save_list, this.step)
     }
@@ -153,6 +160,7 @@ export class RoomPage {
     private grabbedToken: any;
     private lastTokenX: any;
     private lastTokenY: any;
+    private padding: any;
 
     constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) 
     {
@@ -184,33 +192,9 @@ export class RoomPage {
       this.canvasList.push({canvas: this._GRIDCANVAS, context: this._GRIDCONTEXT})
       this.canvasList.push({canvas: this._TOKENCANVAS, context: this._TOKENCONTEXT})
 
-      this.canvasList.forEach(ele => {
-        ele.canvas.width = 2048;
-        ele.canvas.height = 1024;
-
-        ele.canvas.addEventListener('dblclick', e => {
-          this.mouseDoubleClickEvent(e);
-        })
-
-        ele.canvas.addEventListener('mousedown', e => {
-          this.mouseDownEvent(e);
-        })
-  
-        ele.canvas.addEventListener('mousemove', e => {
-          this.mouseMoveEvent(e);
-        })
-
-        ele.canvas.addEventListener('mouseup', e => {
-          this.mouseUpEvent(e);
-        })
-  
-        ele.canvas.addEventListener('contextmenu', e => e.preventDefault());
-  
-      })
-
       if(this._CANVAS.getContext)
       {
-         this.setupCanvas(this._CANVAS.width, this._CANVAS.height);
+         this.setupCanvas(baseWidth, baseHeight);
       }
     }
 
@@ -241,7 +225,7 @@ export class RoomPage {
           switch(this.mode) {
             case 'pencil':
               this._CONTEXT.moveTo(e.offsetX, e.offsetY)
-              this.draw(pos.x, pos.y, pos.dir, this.selectedColor, this.mode);
+              this.draw(e.offsetX, e.offsetY, pos.dir, this.selectedColor, this.mode);
               break;
             case 'draw':
               this.draw(pos.x, pos.y, pos.dir, this.selectedColor, this.mode);
@@ -280,6 +264,7 @@ export class RoomPage {
             case 'pencil':
               this.drawing = true;
               var pos = this.getSquare(e);
+              this.erase(pos.x, pos.y, pos.dir, this.mode);
               break;
           }
           break;
@@ -362,9 +347,12 @@ export class RoomPage {
     getSquare(e) {
       var x1 = e.offsetX
       var y1 = e.offsetY
-      var vD =  10
-      var x2 = 1 +  (Math.floor(e.offsetX / squareSize -.2) * squareSize + (squareSize / vD))
-      var y2 = (Math.floor(e.offsetY / squareSize -.2) * squareSize + (squareSize / vD)) - 1
+      var vD =  6
+      // var x2 = (Math.floor(e.offsetX / squareSize -.2) * squareSize + (squareSize / vD))
+      // var y2 = (Math.floor(e.offsetY / squareSize -.2) * squareSize + (squareSize / vD))
+
+      var x2 = (Math.floor(x1 / squareSize - (squareSize/baseWidth) - .1) * squareSize + this.padding.left) - squareSize
+      var y2 = (Math.floor(y1 / squareSize - (squareSize/baseHeight) - .1) * squareSize + this.padding.top) - squareSize
       var dx = x2 - x1
       var dy = y2 - y1
       if (debug) {
@@ -388,15 +376,14 @@ export class RoomPage {
 
     erase(x, y, dir, mode) {
       if (!this.drawing) return;
-      if (mode == 'line') this._CONTEXT.clearRect(x, y, squareSize, squareSize)
-      else this._CONTEXT.clearRect(x, y, squareSize, squareSize)
+      this._CONTEXT.clearRect(x, y - .5, squareSize + .5, squareSize + .5)
     }
 
     draw(x, y, dir, color, mode) {
       if (!this.drawing) return;
       this._CONTEXT.fillStyle = color;
       this._CONTEXT.strokeStyle = color;
-      this._CONTEXT.lineWidth = 1.5;
+      this._CONTEXT.lineWidth = 1;
       if (mode == 'draw') {
         this._CONTEXT.fillRect(x, y, squareSize, squareSize)
       }
@@ -508,6 +495,30 @@ export class RoomPage {
 
     setupCanvas(width, height)
     {
+
+        this._GRIDCANVAS.addEventListener('dblclick', e => {
+          this.mouseDoubleClickEvent(e);
+        })
+
+        this._GRIDCANVAS.addEventListener('mousedown', e => {
+          this.mouseDownEvent(e);
+        })
+  
+        this._GRIDCANVAS.addEventListener('mousemove', e => {
+          this.mouseMoveEvent(e);
+        })
+
+        this._GRIDCANVAS.addEventListener('mouseup', e => {
+          this.mouseUpEvent(e);
+        })
+  
+        this._GRIDCANVAS.addEventListener('contextmenu', e => e.preventDefault());
+
+        this._BGCANVAS.width = baseWidth;
+        this._BGCANVAS.height = baseHeight;
+        this._GRIDCANVAS.width = baseWidth;
+        this._GRIDCANVAS.height = baseHeight;
+
        this._BGCONTEXT.fillStyle = "beige";
        this._BGCONTEXT.fillRect(0, 0, width, height);
 
@@ -522,6 +533,18 @@ export class RoomPage {
        let pR = width - nX * squareSize - pL // padding right
        let pB = height - nY * squareSize - pT // padding bottom
 
+      this._CANVAS.width = width;
+      this._CANVAS.height = height;
+      this._TOKENCANVAS.width = width;
+      this._TOKENCANVAS.height = height;
+       this.padding = {
+         left: pL,
+         right: pR,
+         top: pT,
+         bottom: pB,
+         x: pX,
+         y: pY
+       }
        for (var x = pL; x <= width - pR; x += squareSize) {
         this._GRIDCONTEXT.moveTo(x, pT)
         this._GRIDCONTEXT.lineTo(x, height - pB)
@@ -538,15 +561,15 @@ export class RoomPage {
 
     setBackground() {
       this._BGCONTEXT.fillStyle = this.selectedColor;
-      this._BGCONTEXT.fillRect(0, 0, this._BGCANVAS.width, this._BGCANVAS.height)
+      this._BGCONTEXT.fillRect(0, 0, baseWidth, baseHeight)
     }
 
     clearCanvas()
     {
-       this._CONTEXT.clearRect(0, 0, this._CANVAS.width, this._CANVAS.height);
-       this._TOKENCONTEXT.clearRect(0, 0, this._CANVAS.width, this._CANVAS.height);
+       this._CONTEXT.clearRect(0, 0, baseWidth, baseHeight);
+       this._TOKENCONTEXT.clearRect(0, 0, baseWidth, baseHeight);
        this.tokenMap.clear();
-       this.setupCanvas(this._CANVAS.width, this._CANVAS.height);
+       this.setupCanvas(baseWidth, baseHeight);
        this.manager.save()
     }
 
