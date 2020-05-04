@@ -58,7 +58,7 @@ class save_scum  {
     let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
     if (debug) console.log('save tokens', jsonTokens)
     this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
-
+    console.log(sizeof(this.save_list[this.step]))
     if (debug) { 
       console.log(this.save_list, this.step)
       console.log(sizeof(this.save_list))
@@ -79,6 +79,7 @@ class save_scum  {
         this.object.drawAllTokens();
     }
     snapshot.src = data.history;
+    this.save_list.pop();
     this.save_list.push(data.history);
     snapshot.onload = () => {
       this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
@@ -88,30 +89,34 @@ class save_scum  {
   }
 
   undo () {
-    console.log(this.step)
-    console.log(this.save_list)
-    if (this.step != -1 && this.save_list.length > 1) {
+    if (this.step != 0 && this.save_list.length > 1) {
+      this.step--;
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
         snapshot.onload = () => {
           this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
           this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+          this.object.tokenMap.forEach((token, key, map) => {
+            token.icon = JSON.stringify(token.icon.src);
+          })
           let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
           this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
         }
-      this.step--;
       if (debug) console.log(this.save_list, this.step)
     }
   }
 
   redo () {
-    if (this.step != this.save_list.length - 1) {
+    if (this.step != this.save_list.length) {
       this.step++;
       let snapshot = new Image();
       snapshot.src = this.save_list[this.step];
       snapshot.onload = () => {
         this.object._CONTEXT.clearRect(0, 0, this.object._CANVAS.width, this.object._CANVAS.height);
         this.object._CONTEXT.drawImage(snapshot, 0, 0, this.object._CANVAS.width, this.object._CANVAS.height)
+        this.object.tokenMap.forEach((token, key, map) => {
+          token.icon = JSON.stringify(token.icon.src);
+        })
         let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
         this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
       }
@@ -392,10 +397,6 @@ export class RoomPage {
       var y2 = (Math.floor(y1 / squareSize - (squareSize/baseHeight) - .1) * squareSize + this.padding.top) - squareSize
       var dx = x2 - x1
       var dy = y2 - y1
-      if (debug) {
-        console.log('x1', x1,'y1', y1,'x2', x2,'y2', y2)
-        console.log('dx', dx, 'dy', dy)
-      }
       var pos;
       var aDy = Math.abs(dy)
       var aDx = Math.abs(dx)
@@ -420,7 +421,7 @@ export class RoomPage {
       if (!this.drawing) return;
       this._CONTEXT.fillStyle = color;
       this._CONTEXT.strokeStyle = color;
-      this._CONTEXT.lineWidth = 1;
+      this._CONTEXT.lineWidth = 2;
       if (mode == 'draw') {
         this._CONTEXT.fillRect(x, y, squareSize, squareSize)
       }
@@ -549,24 +550,25 @@ export class RoomPage {
 
     setupCanvas(width, height)
     {
-
-        this._GRIDCANVAS.addEventListener('dblclick', e => {
+      this.canvasList.forEach(ele => {
+        ele.canvas.addEventListener('dblclick', e => {
           this.mouseDoubleClickEvent(e);
         })
 
-        this._GRIDCANVAS.addEventListener('mousedown', e => {
+        ele.canvas.addEventListener('mousedown', e => {
           this.mouseDownEvent(e);
         })
   
-        this._GRIDCANVAS.addEventListener('mousemove', e => {
+        ele.canvas.addEventListener('mousemove', e => {
           this.mouseMoveEvent(e);
         })
 
-        this._GRIDCANVAS.addEventListener('mouseup', e => {
+        ele.canvas.addEventListener('mouseup', e => {
           this.mouseUpEvent(e);
         })
   
-        this._GRIDCANVAS.addEventListener('contextmenu', e => e.preventDefault());
+        ele.canvas.addEventListener('contextmenu', e => e.preventDefault());
+      })
 
         this._BGCANVAS.width = baseWidth;
         this._BGCANVAS.height = baseHeight;

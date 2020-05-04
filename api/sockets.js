@@ -18,7 +18,7 @@ io = io.listen(server);
 io.on('connection', onConnect);
 
 function onConnect(socket) {
-  console.log('User Connected');
+  console.log('User Connected', socket.id);
     
   socket.on('room', function(room) {
     socket.join(room);
@@ -53,6 +53,18 @@ function onConnect(socket) {
           }
       }
     )
+  })
+
+  socket.on('sync pub', function(data) {
+    io.to(data.session).emit('sync sub', data);
+  })
+
+  socket.on('sync cell pub', function(data) {
+    io.to(data.session).emit('sync cell sub', data);
+  })
+
+  socket.on('sync cell pub erase', function(data) {
+    io.to(data.session).emit('sync cell sub erase', data);
   })
 
   socket.on('get last art', function(s_id) {

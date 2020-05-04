@@ -1,0 +1,134 @@
+.container{
+    overflow: auto;
+    margin: auto;
+    width: 2000;
+    height: 1000;
+    background-color: beige;
+  }
+  
+  #container strong {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  
+  #container p {
+    font-size: 16px;
+    line-height: 22px;
+  
+    color: #8c8c8c;
+  
+    margin: 0;
+  }
+  
+  #container a {
+    text-decoration: none;
+  }
+  
+  #slide{
+    width: 100%;
+    height: 100%;
+    transition: transform .3s;
+  }
+  
+  #canvas {
+    overflow: auto;
+    border: lightgrey 1px solid;
+    border-radius: 5px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    margin: auto;
+    position: absolute !important;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    background-color: transparent !important;
+  }
+
+  .canvas-container {
+    margin: auto;
+    position: absolute !important;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    background-color: transparent !important;
+  }
+  
+  .palette-container {
+    height: 30px;
+    bottom: 5px;
+    left: 10px;
+    display: inline-block;
+    position: fixed !important;
+  }
+  
+  .palette-button {
+    cursor: pointer;
+    box-sizing: border-box;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: none;
+    margin: 0 4px 0 0;
+    pointer-events: auto;
+    border-radius: 3px;
+    vertical-align: middle;
+    transition: height .1s linear,opacity .1s linear;
+    box-shadow: 2px 2px 2px rgba(0,0,0,.2);
+  }
+  
+  .palette-button-selected {
+    height: 24px;
+    width: 24px;
+  }
+
+  .grid-button {
+    display: inline-block;
+    position: fixed !important;
+  }
+  
+  .tool-container {
+    height: 340px;
+    bottom: 40px;
+    left: 0;
+    margin-left: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: inline-block;
+    position: fixed !important;
+  }
+
+
+
+  .icon-container {
+    position: fixed !important;
+    margin-left:160px;
+  }
+
+  .background-button {
+    position: fixed;
+    bottom:0;
+    right:0;
+  }
+  
+  .tool-box {
+    display: inline-block;
+    position: relative;
+  }
+  
+  .tool-button {
+    margin: auto;
+    margin-top: 12px;
+    color: white;
+    width: 120px;
+    border-radius: 20px;
+  }
+
+  .selected {
+    background-color: red !important;
+    color: red !important;
+  }
+  
+  .control-button {
+    font-size: 20px;
+  }
