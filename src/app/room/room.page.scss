@@ -91,8 +91,16 @@
     left: 0;
     margin-left: 10px;
     border-radius: 5px;
+    margin-bottom: 10px;
     display: inline-block;
     position: fixed !important;
+  }
+
+
+
+  .icon-container {
+    position: fixed !important;
+    margin-left:160px;
   }
 
   .background-button {
@@ -112,6 +120,11 @@
     color: white;
     width: 120px;
     border-radius: 20px;
+  }
+
+  .selected {
+    background-color: red !important;
+    color: red !important;
   }
   
   .control-button {

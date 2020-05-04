@@ -52,10 +52,11 @@ class save_scum  {
     this.cleanArray(this.step + 1)
     this.step++;
     this.save_list.push(this.object._CANVAS.toDataURL("image/png"));
-    console.log(sizeof(this.object._CANVAS.toDataURL("image/png")))
-
+    this.object.tokenMap.forEach((token, key, map) => {
+      token.icon = JSON.stringify(token.icon.src);
+    })
     let jsonTokens = JSON.stringify(Array.from(this.object.tokenMap.entries()));
-
+    if (debug) console.log('save tokens', jsonTokens)
     this.object.socket.emit('publish', {room: this.object.s_id, history: this.save_list[this.step], tokens: jsonTokens})
 
     if (debug) { 
@@ -67,8 +68,14 @@ class save_scum  {
   load (data) {
     let snapshot = new Image();
     if (data.tokens) {
-      let tokens = new Map(JSON.parse(data.tokens));
+        let tokens = new Map(JSON.parse(data.tokens));
+        if (debug) console.log('load tokens', tokens)
         this.object.tokenMap = tokens;
+        this.object.tokenMap.forEach(token => {
+          let src = JSON.parse(token.icon);
+          token.icon = new Image();
+          token.icon.src = src;
+        })
         this.object.drawAllTokens();
     }
     snapshot.src = data.history;
@@ -120,11 +127,13 @@ class Token {
   shape : any;
   color : any;
   name : any;
-  constructor (x, y, shape, color) {
+  icon : any;
+  constructor (x, y, shape, color, icon) {
     this.x = x;
     this.y = y;
     this.shape = shape;
     this.color = color;
+    this.icon = icon;
   }
 }
 
@@ -162,11 +171,23 @@ export class RoomPage {
     private lastTokenX: any;
     private lastTokenY: any;
     private padding: any;
+    private tokenSelected = false;
+    private icons: Array<any>;
+    private icon: any;
 
     constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) 
     {
+      this.icon = new Image();
+      this.icon.src = '../../assets/tokens/empty.png';
       this.canvasList = new Array<any>();
       this.tokenMap = new Map<string, Token>();
+    }
+
+    createImage(src, id) {
+      var img = new Image();
+      img.src = src;
+      img.id = id;
+      return img;
     }
 
     ionViewDidEnter() : void 
@@ -176,6 +197,21 @@ export class RoomPage {
         this.s_id = params['id'];
         this.manager = new save_scum(this);
       });
+      this.icons = new Array<any>();
+      this.icons.push(this.createImage('../../assets/tokens/empty.png', 'empty'))
+      this.icons.push(this.createImage('../../assets/tokens/arti.png', 'arti'))
+      this.icons.push(this.createImage('../../assets/tokens/barb.png', 'barb'))
+      this.icons.push(this.createImage('../../assets/tokens/bard.png', 'bard'))
+      this.icons.push(this.createImage('../../assets/tokens/cleric.png', 'cleric'))
+      this.icons.push(this.createImage('../../assets/tokens/druid.png', 'druid'))
+      this.icons.push(this.createImage('../../assets/tokens/fighter.png', 'fighter'))
+      this.icons.push(this.createImage('../../assets/tokens/monk.png', 'monk'))
+      this.icons.push(this.createImage('../../assets/tokens/paladin.png', 'paladin'))
+      this.icons.push(this.createImage('../../assets/tokens/ranger.png', 'ranger'))
+      this.icons.push(this.createImage('../../assets/tokens/rogue.png', 'rogue'))
+      this.icons.push(this.createImage('../../assets/tokens/sorc.png', 'sorc'))
+      this.icons.push(this.createImage('../../assets/tokens/wizard.png', 'wizard'))
+      this.icons.push(this.createImage('../../assets/tokens/warlock.png', 'warlock'))
     }
 
     setup() {
@@ -239,7 +275,7 @@ export class RoomPage {
                 this.lastTokenX = this.grabbedToken.x;
                 this.lastTokenY = this.grabbedToken.y;
               } else {
-                this.token(pos.x, pos.y, this.selectedColor);
+                this.token(pos.x, pos.y, this.selectedColor, this.icon);
               }
               break;
           }
@@ -423,8 +459,8 @@ export class RoomPage {
       }
     }
 
-    token(x, y, color) {
-      let newToken = new Token(x, y, 'circle', color);
+    token(x, y, color, icon) {
+      let newToken = new Token(x, y, 'circle', color, icon);
       this.tokenMap.set(x.toString()+','+y.toString(), newToken)
       this.drawToken(newToken);
     }
@@ -432,12 +468,18 @@ export class RoomPage {
     drawToken(token) {
       this._TOKENCONTEXT.beginPath();
       this._TOKENCONTEXT.arc(token.x + (squareSize/2), token.y + (squareSize/2), (squareSize/2) - 2, 0, 2 * Math.PI, false);
-      this._TOKENCONTEXT.fillStyle = token.color;
-      this._TOKENCONTEXT.strokeStyle = 'black';
+      if (token.color == 'black') {
+        this._TOKENCONTEXT.fillStyle = 'white';
+      } else {
+        this._TOKENCONTEXT.fillStyle = token.color;
+      }
       this._TOKENCONTEXT.lineWidth = 2;
       this._TOKENCONTEXT.closePath();
       this._TOKENCONTEXT.fill();
       this._TOKENCONTEXT.stroke();
+      
+       
+      this._TOKENCONTEXT.drawImage(token.icon, token.x, token.y);    
     }
 
     dragToken(e) {
@@ -467,7 +509,6 @@ export class RoomPage {
     selectColor(e) {
       var color = e.target.style.backgroundColor;
       this.selectedColor = color;
-      console.log(this.selectedColor)
     }
 
     selectLine() {
@@ -482,8 +523,20 @@ export class RoomPage {
       this.mode = "pencil";
     }
 
+    selectIcon(e, icon) {
+      this.mode = "token"
+      this.icon = icon;
+      this.tokenSelected = false;
+      
+    }
+
     selectToken() {
-      this.mode = "token";
+      //this.mode = "token";
+      if (this.tokenSelected == false) {
+        this.tokenSelected = true;
+      } else {
+        this.tokenSelected = false;
+      }
     }
 
     hideGrid() {

@@ -24,16 +24,25 @@
       <ion-button class="tool-button control-button" (click)="redo()">Redo</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button class="tool-button" (click)="selectDraw()">Square</ion-button>
+      <ion-button [ngClass]="mode == 'draw' ? 'tool-button selected' : 'tool-button'" (click)="selectDraw()">Square</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button class="tool-button" (click)="selectLine()">Line</ion-button>
+      <ion-button [ngClass]="mode == 'line' ? 'tool-button selected' : 'tool-button'" (click)="selectLine()">Line</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button class="tool-button" (click)="selectPencil()">Pencil</ion-button>
+      <ion-button [ngClass]="mode == 'pencil' ? 'tool-button selected' : 'tool-button'" (click)="selectPencil()">Pencil</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button class="tool-button" (click)="selectToken()">Token</ion-button>
+      <ion-col>
+        <ion-button [ngClass]="mode == 'token' ? 'tool-button selected' : 'tool-button'" (click)="selectToken()">Token</ion-button>
+      </ion-col>
+      <ion-row class="icon-container"  *ngIf="tokenSelected">
+        <ion-col *ngFor="let icon of icons">
+          <ion-button (click)="selectIcon(e, icon)">
+            <img src={{icon.src}}>
+          </ion-button>
+        </ion-col>
+      </ion-row>
     </ion-row>
     <ion-row>
       <ion-button class="tool-button" (click)="clearCanvas()">
