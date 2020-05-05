@@ -1,15 +1,10 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { Base64ToGallery, Base64ToGalleryOptions } from '@ionic-native/base64-to-gallery/ngx';
-import { Platform, ToastController} from '@ionic/angular'; 
-import { NumberSymbol } from '@angular/common';
-import { Scroll, Router, ActivatedRoute } from '@angular/router';
-import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
-import { ThrowStmt } from '@angular/compiler';
+import { Router, ActivatedRoute } from '@angular/router';
 import { sizeof } from '../sizeof.compressed';
 import { Storage, IonicStorageModule } from '@ionic/storage';
 import { Request } from '../requests';
 import * as io from 'socket.io-client';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+import { ChatManager } from './chat';
 
 let squareSize = 30
 let debug = false;
@@ -178,6 +173,7 @@ export class RoomPage {
     private tokenSelected = false;
     private icons: Array<any>;
     private icon: any;
+    private _chatManager;
 
     constructor(private route: ActivatedRoute, private storage: Storage, private request: Request, private router: Router) 
     {
@@ -185,6 +181,7 @@ export class RoomPage {
       this.icon.src = '../../assets/tokens/empty.png';
       this.canvasList = new Array<any>();
       this.tokenMap = new Map<string, Token>();
+      this._chatManager = new ChatManager();
     }
 
     createImage(src, id) {

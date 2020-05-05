@@ -1,10 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-      <button style="background-color: transparent;" (click)="goHome()">
-        <ion-title style="color: white;">
-          Adventure Grid
-        </ion-title>
-      </button>
+    <button style="background-color: transparent;" (click)="goHome()">
+      <ion-title style="color: black;">
+        Adventure Grid
+      </ion-title>
+    </button>
   </ion-toolbar>
 </ion-header>
 
@@ -18,10 +18,14 @@
 
   <div class="tool-container">
     <ion-row>
-      <ion-button class="tool-button control-button" (click)="undo()">Undo</ion-button>
+      <ion-button class="tool-button control-button" (click)="undo()"
+        >Undo</ion-button
+      >
     </ion-row>
     <ion-row>
-      <ion-button class="tool-button control-button" (click)="redo()">Redo</ion-button>
+      <ion-button class="tool-button control-button" (click)="redo()"
+        >Redo</ion-button
+      >
     </ion-row>
     <ion-row>
       <ion-button [ngClass]="mode == 'draw' ? 'tool-button selected' : 'tool-button'" (click)="selectDraw()">Square</ion-button>
@@ -30,7 +34,9 @@
       <ion-button [ngClass]="mode == 'line' ? 'tool-button selected' : 'tool-button'" (click)="selectLine()">Line</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button [ngClass]="mode == 'pencil' ? 'tool-button selected' : 'tool-button'" (click)="selectPencil()">Pencil</ion-button>
+      <ion-button class="tool-button" (click)="selectPencil()"
+        >Pencil</ion-button
+      >
     </ion-row>
     <ion-row>
       <ion-col>
@@ -58,18 +64,117 @@
   </div>
 
   <div class="palette-container">
-    <button class="palette-button" style="background-color: red;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: blue;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: yellow;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: saddlebrown;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: black;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: grey;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: white;" (click)="selectColor($event)"></button>
-    <button class="palette-button" style="background-color: beige;" (click)="selectColor($event)"></button>
+    <button
+      class="palette-button"
+      style="background-color: red;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: blue;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: yellow;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: saddlebrown;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: black;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: grey;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: white;"
+      (click)="selectColor($event)"
+    ></button>
+    <button
+      class="palette-button"
+      style="background-color: beige;"
+      (click)="selectColor($event)"
+    ></button>
   </div>
-  <div  class="grid-button">
+  <div class="grid-button">
     <ion-button (click)="hideGrid()">Grid</ion-button>
   </div>
+  <ion-icon id="hide-chat-box" name="chevron-forward" size="large"></ion-icon>
+  <ion-icon id="show-chat-box" name="chevron-back" size="large"></ion-icon>
 
+  <div id="chat-box">
+    <div class="scrollable" id="chat-history">
+      <ion-list id="chat-log">
+        <ion-item lines="full">
+          <ion-avatar class="avatar">
+            <img src="https://gravatar.com/avatar/dba6bae8c566f9d4041fb9cd9ada7741?d=identicon&f=y">
+          </ion-avatar>
+          <ion-label text-wrap>Welcome to Adventure Grid!</ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
+    <div id="chat-input">
+      <ion-item>
+        <ion-textarea autoGrow="true" rows="1" placeholder="Type here..." id="message-text"></ion-textarea>
+        <ion-button (click)="_chatManager.PostMessage()">Submit</ion-button>
+      </ion-item>
+    </div>
 
-</ion-content> 
+      <div id="roll-box">
+        <ion-item id="dice-box" lines="none">
+          <ion-label>Dice</ion-label>
+          <ion-range min="1" max="10" step="1" snaps="true" value="1" id="roll-dice" (ionChange)="_chatManager.SetDie($event)">
+            <ion-label slot="start">1</ion-label>
+            <ion-label slot="end">10</ion-label>
+          </ion-range>
+        </ion-item>
+
+        <ion-list>
+          <ion-item lines="none">
+            <ion-label>Sides</ion-label>
+            <ion-select placeholder="Select One" value="d20" interface="popover" id="roll-dimension" (ionChange)="_chatManager.SetDim($event)">
+              <ion-select-option value="d2">2</ion-select-option>
+              <ion-select-option value="d4">4</ion-select-option>
+              <ion-select-option value="d6">6</ion-select-option>
+              <ion-select-option value="d8">8</ion-select-option>
+              <ion-select-option value="d10">10</ion-select-option>
+              <ion-select-option value="d12">12</ion-select-option>
+              <ion-select-option value="d20">20</ion-select-option>
+              <ion-select-option value="d100">100</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-list>
+
+        <ion-item lines="none" id="mod-box">
+          <ion-label>Modifier</ion-label>
+          <ion-range min="-5" max="10" step="1" snaps="true" value="0" id="roll-modifier" (ionChange)="_chatManager.SetMod($event)">
+            <ion-label slot="start">-5</ion-label>
+            <ion-label slot="end">10</ion-label>
+          </ion-range>
+        </ion-item>
+
+        <ion-segment color="dark" value="None" id="roll-advantage" (ionChange)="_chatManager.SetAdv($event)">
+          <ion-segment-button value="Disadvantage">
+            <ion-label>Disadvantage</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="None">
+            <ion-label>None</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="Advantage">
+            <ion-label>Advantage</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <ion-button id="roll-button" (click)="_chatManager.Roll()">Roll 1 D20</ion-button>
+  </div>
+</ion-content>
