@@ -10,14 +10,12 @@ export interface ICanvas {
     _panning?: boolean;
     _currentColor?: any;
     _currentIcon?: any;
-    _session?: number;
     GetSquarePos: (e, sqSz, w, h) => any;
     Draw(e): void;
     EndDraw(e): void;
     Erase(e): void;
     EndErase(e): void;
     DrawCell(cell): void;
-    EraseCell(key): void;
     Pan(e, lastDragX): void;
     MouseDown(e): void;
     MouseUp(e): void;

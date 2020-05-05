@@ -1,0 +1,146 @@
+var io = require('socket.io'), http = require('http')
+
+class ICell {
+    _x
+    _y
+    _icon
+    _color
+}
+
+class Key {
+    _x
+    _y
+    constructor(x, y) {
+        this._x = x;
+        this._y = y;
+    }
+    string() {
+        return this._x.toString()+','+this._y.toString();
+    }
+}
+
+const Pool = require('pg').Pool
+const CONFIG = require('./config/config.json')
+
+const db = new Pool({
+  user: CONFIG.user,
+  host: CONFIG.host,
+  database: CONFIG.database,
+  password: CONFIG.password,
+  port: CONFIG.port,
+})
+
+server = http.createServer()
+
+io = io.listen(server);
+
+io.on('connection', onConnect);
+
+function onConnect(socket) {
+    console.log('User Connected', socket.id);
+    
+    socket.on('room', function(room) {
+      socket.join(room);
+      console.log('connected to: ', room)
+    });
+  
+    socket.on('create room', function(room) {
+      socket.join(room)
+      db.query(
+        `INSERT INTO sessions
+        (sessionid, history)
+        VALUES (${room}, '')`,
+        (err, res) => {
+            if (err) {
+                console.log(err);
+            }
+        })
+    })
+
+    socket.on('sync save', function(data) {
+        switch (data.id) {
+            case 'square':
+                SaveSquare(data);
+                break;
+            case 'line':
+                break;
+            case 'token':
+                break;
+        }
+        io.to(data.room).emit('sync load', data);
+    })
+
+    socket.on('sync all get', function(data) {
+        switch(data.id) {
+            case 'square':
+                LoadSquare(data, (history) => {
+                    if (history) {
+                        let newData = {history: history, id: data.id}
+                        io.to(data.room).emit('sync all set', newData);
+                    } 
+                });
+                break;
+        }
+    })
+}
+
+function GetSquare(sid, callback) {
+    db.query(`
+        SELECT history 
+        FROM sq_history
+        WHERE sid = ${sid}
+    `, (err, res) =>{
+        if (err) {
+            console.log(err);
+            callback(err, null);
+        } else {
+            callback(null, res);
+        }
+    })
+}
+
+function SaveSquare(data) {
+    GetSquare(data.room, (err, res) => {
+        let sq_map = new Map();
+        if (res && res.rows[0] != '') {
+            try {
+                sq_map = new Map(JSON.parse(res.rows[0].history));
+            } catch {
+
+            }
+        } 
+        console.log(data)
+        if (data.cell) {
+            let key = new Key(data.cell._x, data.cell._y);
+            if (data.mode == 'add') {
+                sq_map.set(key.string(), data.cell);
+            }
+            if (data.mode == 'remove') {
+                sq_map.delete(key.string());
+            }
+        }
+        if (data.mode == 'clear') {
+            sq_map.clear();
+        }
+        let sq_map_json = JSON.stringify(Array.from(sq_map.entries()));
+        db.query(`
+        UPDATE sq_history 
+        set history = '${sq_map_json}'
+        WHERE sid = ${data.room}
+        `)
+    })
+}
+
+function LoadSquare(data, callback) {
+    GetSquare(data.room, (err, res) => {
+        if (res.rows[0]) {
+            callback(res.rows[0].history);
+        } else {
+            callback(null);
+        }
+    })
+}
+
+server.listen(3001, function(){
+    console.log('Server started on 3001');
+});

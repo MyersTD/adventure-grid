@@ -1,10 +1,10 @@
-import { ICanvas } from './canvas-interface'
-import { BackgroundCanvas } from './background-canvas';
-import { TokenCanvas } from './token-canvas';
-import { LineCanvas } from './line-canvas';
-import { DrawingCanvas } from './drawing-canvas';
-import { GridCanvas } from './grid-canvas';
-import { PencilCanvas } from './pencil-canvas';
+import { ICanvas } from '../interfaces/canvas-i'
+//import { BackgroundCanvas } from '../test-canvas/background-canvas';
+import { BackgroundCanvas } from '../canvas-types/background-canvas'
+import { LineCanvas } from '../canvas-types/line-canvas';
+import { SquareCanvas } from '../canvas-types/square-canvas';
+import { GridCanvas } from '../canvas-types/grid-canvas';
+import { TokenCanvas } from '../canvas-types/token-canvas';
 
 function CalculatePadding(w, h, sqSz) {
     let nX = Math.floor(w / sqSz) - 2 // number of squares on X
@@ -58,17 +58,15 @@ function CalcSquareCorners(e, sqSz, w, h) {
 function CanvasFactory(id, height, width, squareSize, session) {
     switch (id) {
         case 'background':
-            return new BackgroundCanvas(id, width, height, squareSize, CalcSquareCorners, session);
-        case 'token':
-            return new TokenCanvas(id, width, height, squareSize, CalcSquareCorners, session);
+            return new BackgroundCanvas(id, squareSize, width, height, CalcSquareCorners);
         case 'line':
-            return new LineCanvas(id, width, height, squareSize, CalcSquareCorners, session);
-        case 'drawing':
-            return new DrawingCanvas(id, width, height, squareSize, CalcSquareCorners, session);
+            return new LineCanvas(id, squareSize, width, height, CalcSquareCorners);
+        case 'square':
+            return new SquareCanvas(id, squareSize, width, height, CalcSquareCorners);
         case 'grid':
-            return new GridCanvas(id, width, height, squareSize, CalcSquareCorners, session);
-        case 'pencil':
-            return new PencilCanvas(id, width, height, squareSize, CalcSquareCorners, session);
+            return new GridCanvas(id, squareSize, width, height, CalcSquareCorners);
+        case 'token':
+            return new TokenCanvas(id, squareSize, width, height, CalcSquareCorners);
     }
 }
 

@@ -29,6 +29,10 @@ export default class SocketManager {
             this._socket.on('sync cell sub erase', (data) => {
                 this.SubscribeEraseCell(data);
             })
+
+            this._socket.on('sync clear sub', (data) => {
+                this.SubscribeClear(data);
+            })
         })
     }
 
@@ -61,6 +65,12 @@ export default class SocketManager {
         }
     }
 
+    SubscribeClear(data) {
+        if (data != null) {
+            this._saveManager.ClearAll();
+        }
+    }
+
     Publish() { 
         let jsonSaves = JSON.stringify(Array.from(this._saveManager._savesMap.entries()));
         let data = {session: this._session, history: jsonSaves, canvas: this._saveManager._canvas._id}
@@ -75,5 +85,10 @@ export default class SocketManager {
     PublishEraseCell(key) {
         let data = {session: this._session, key: JSON.stringify(key), canvas: this._saveManager._canvas._id}
         this._socket.emit('sync cell pub erase', data);
+    }
+
+    PublishClear() {
+        let data = {session: this._session}
+        this._socket.emit('sync clear pub', data);
     }
 }

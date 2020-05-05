@@ -1,6 +1,6 @@
-import { ICanvas } from './canvas-interface';
-import { TokenCell } from '../save-manager/cell';
-import SaveManager from '../save-manager/save-manager';
+import { ICanvas } from '../interfaces/canvas-interface';
+import { TokenCell } from '../../save-manager/cell';
+import SaveManager from '../../save-manager/save-manager';
 
 class Token {
     x : any;
@@ -209,9 +209,9 @@ export class TokenCanvas implements ICanvas {
         this._contextEle.clearRect(key.x, key.y, this._squareSize, this._squareSize);
     }
 
-    Pan(e) {
-        let styleLeft = (e.clientX - this._lastDragX) + 'px';
-        let styleRight = (e.clientX + this._lastDragX) + 'px';
+    Pan(e, lastDragX) {
+        let styleLeft = (e.clientX - lastDragX) + 'px';
+        let styleRight = (e.clientX + lastDragX) + 'px';
 
         this._canvasEle.style.left = styleLeft;
         this._canvasEle.style.right = styleRight;

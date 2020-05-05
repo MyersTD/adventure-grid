@@ -1,5 +1,5 @@
-import { ICanvas } from './canvas-interface';
-import SaveManager from '../save-manager/save-manager';
+import { ICanvas } from '../interfaces/canvas-interface';
+import SaveManager from '../../save-manager/save-manager';
 
 export class BackgroundCanvas implements ICanvas{
     _id: any;

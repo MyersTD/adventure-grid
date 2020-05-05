@@ -67,6 +67,10 @@ function onConnect(socket) {
     io.to(data.session).emit('sync cell sub erase', data);
   })
 
+  socket.on('sync clear pub', function(data) {
+    io.to(data.session).emit('sync clear sub', data);
+  })
+
   socket.on('get last art', function(s_id) {
     db.query(
       `SELECT history, tokens 

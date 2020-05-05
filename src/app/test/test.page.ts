@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import CanvasManager from './canvas/canvas-manager'
-import { ICanvas } from './canvas/canvas-interface';
+import CanvasManager from './canvas/canvas-manager/canvas-manager'
+import { SyncManager } from './sync/sync-manager';
+
 
 @Component({
   selector: 'app-test',
@@ -36,7 +37,7 @@ export class TestPage implements OnInit {
     this._iconsList.push(this.CreateImage('../../assets/tokens/sorc.png', 'sorc'))
     this._iconsList.push(this.CreateImage('../../assets/tokens/wizard.png', 'wizard'))
     this._iconsList.push(this.CreateImage('../../assets/tokens/warlock.png', 'warlock'))
-    this._mode = 'drawing';
+    this._mode = 'square';
   }
 
   CreateImage(src, id) {
@@ -54,7 +55,9 @@ export class TestPage implements OnInit {
               this._lastDragX = e.clientX - this._canvasList.get('background')._canvas._canvasEle.offsetLeft;
               break;
           default:
-            this._canvasList.get(this._mode)._canvas.MouseDown(e);
+            if (this._canvasList.has(this._mode)) {
+              this._canvasList.get(this._mode)._canvas.MouseDown(e);
+            }
       }
   })
   this._canvasContainer.addEventListener('mousemove', e => {
@@ -62,12 +65,11 @@ export class TestPage implements OnInit {
       switch(e.which) {
           case 2: 
               this.Pan(e, this._lastDragX);
-              this._canvasList.forEach(ele => {
-                ele._canvas.Pan(e, this._lastDragX);
-              })
               break;
           default:
-            this._canvasList.get(this._mode)._canvas.MouseMove(e);
+            if (this._canvasList.has(this._mode)) {
+              this._canvasList.get(this._mode)._canvas.MouseMove(e);
+            }
       }
   })
   this._canvasContainer.addEventListener('mouseup', e => {
@@ -76,7 +78,9 @@ export class TestPage implements OnInit {
           case 2:
               break;
           default:
-            this._canvasList.get(this._mode)._canvas.MouseUp(e);
+            if (this._canvasList.has(this._mode)) {
+              this._canvasList.get(this._mode)._canvas.MouseUp(e);
+            }
       }
   })
 
@@ -99,13 +103,13 @@ export class TestPage implements OnInit {
     this._canvasContainer.style.margin = 'auto';
     this.SetupListeners();
     this._canvasList.set('background', new CanvasManager(this._canvasContainer, 'background', 30, 2048, 2048, session));
-    this._canvasList.set('drawing', new CanvasManager(this._canvasContainer, 'drawing', 30, 2048, 2048, session));
-    this._canvasList.set('pencil', new CanvasManager(this._canvasContainer, 'pencil', 30, 2048, 2048, session));
+    this._canvasList.set('square', new CanvasManager(this._canvasContainer, 'square', 30, 2048, 2048, session));
+    // this._canvasList.set('pencil', new CanvasManager(this._canvasContainer, 'pencil', 30, 2048, 2048, session));
     this._canvasList.set('token', new CanvasManager(this._canvasContainer, 'token', 30, 2048, 2048, session));
     this._canvasList.set('grid', new CanvasManager(this._canvasContainer, 'grid', 30, 2048, 2048, session));
     this._canvasList.set('line', new CanvasManager(this._canvasContainer, 'line', 30, 2048, 2048, session));
     this.setColor('black');
-  
+    new SyncManager(this._canvasList);
   }
 
   selectColor(e) {
@@ -124,7 +128,7 @@ export class TestPage implements OnInit {
   }
 
   selectDraw() {
-    this._mode = "drawing";
+    this._mode = "square";
   }
 
   selectPencil() {
@@ -155,11 +159,13 @@ export class TestPage implements OnInit {
   }
 
   Pan(e, lastDragX) {
-    let styleLeft = (e.clientX - lastDragX) + 'px';
-    let styleRight = (e.clientX + lastDragX) + 'px';
-
-    this._canvasContainer.style.left = styleLeft;
-    this._canvasContainer.style.right = styleRight;
+    this._canvasList.forEach(canvas => {
+      let styleLeft = (e.clientX - lastDragX) + 'px';
+      let styleRight = (e.clientX + lastDragX) + 'px';
+  
+      canvas._canvas._canvasEle.style.left = styleLeft;
+      canvas._canvas._canvasEle.style.right = styleRight;
+    })
   }
 
   clearCanvas() {

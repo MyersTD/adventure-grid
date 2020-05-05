@@ -1,8 +1,8 @@
-import { ICanvas } from './canvas-interface';
-import SaveManager from '../save-manager/save-manager';
-import { DrawingCell } from '../save-manager/cell';
+import { ICanvas } from '../interfaces/canvas-interface';
+import SaveManager from '../../save-manager/save-manager';
+import { DrawingCell, LineCell } from '../../save-manager/cell';
 
-export class DrawingCanvas implements ICanvas{
+export class LineCanvas implements ICanvas{
     _id: any;
     _canvasEle: HTMLCanvasElement;
     _contextEle: CanvasRenderingContext2D;
@@ -16,7 +16,6 @@ export class DrawingCanvas implements ICanvas{
     _saveManager: SaveManager;
     _session: number;
     GetSquarePos: (e, sqSz, w, h) => any;
-    
 
     constructor (id, w, h, sqSz, getSqFunc, session) {
         this._session = session;
@@ -29,7 +28,7 @@ export class DrawingCanvas implements ICanvas{
         this._canvasEle.height = h;
         this._contextEle = this._canvasEle.getContext('2d');
         this.GetSquarePos = getSqFunc;
-        this.SetupListeners();
+        this._contextEle.lineWidth = 3;
         this._saveManager = new SaveManager(this);
     }
 
@@ -65,8 +64,8 @@ export class DrawingCanvas implements ICanvas{
     MouseMove(e) {
         switch(e.which) {
             case 1: 
-                this._drawingOn = true;
-                this.Draw(e);
+            this._drawingOn = true;
+            this.Draw(e);
                 break;
             case 2: 
                 break;
@@ -79,51 +78,74 @@ export class DrawingCanvas implements ICanvas{
     MouseUp(e) {
         switch(e.which) {
             case 1:
+                this._drawingOn = false;
                 this.EndDraw(e);
                 break;
             case 2:
                 this._panning = false;
                 break;
             case 3:
+                this._drawingOn = false;
                 this.EndErase(e);
         }
     }
 
-    Draw(e) {
-        this._contextEle.fillStyle = this._currentColor;
+    Draw (e) {
         let posData = this.GetSquarePos(e, this._squareSize, this._width, this._height);
-        this._contextEle.fillRect(posData.cornerX, posData.cornerY, this._squareSize, this._squareSize);
-        let cell = new DrawingCell(posData.cornerX, posData.cornerY, this._currentColor);
-        this._saveManager.Save(cell);
+        let x = posData.cornerX, y = posData.cornerY, sqSz = this._squareSize;
+        this.DrawLine(posData.edge, x, y, sqSz);
+        this._saveManager.Save(new LineCell(posData.edge, posData.cornerX, posData.cornerY, this._currentColor))
+    }
+
+    DrawLine(edge, x, y, sqSz) {
+        switch (edge) {
+            case 'top':
+                this._contextEle.moveTo(x, y);
+                this._contextEle.lineTo(x + sqSz, y);
+                break;
+            case 'bottom':
+                this._contextEle.moveTo(x, y + sqSz);
+                this._contextEle.lineTo(x + sqSz, y + sqSz);
+                break;
+            case 'left':
+                this._contextEle.moveTo(x, y);
+                this._contextEle.lineTo(x, y + sqSz);
+                break;
+            case 'right':
+                this._contextEle.moveTo(x + sqSz, y);
+                this._contextEle.moveTo(x + sqSz, y + sqSz);
+                break;
+        }
+        this._contextEle.stroke();
     }
 
     EndDraw(e) {
-        this._drawingOn = false;
+        this._contextEle.closePath();
     }
 
     Erase(e) {
         let posData = this.GetSquarePos(e, this._squareSize, this._width, this._height);
-        this._contextEle.clearRect(posData.cornerX, posData.cornerY - 1, this._squareSize + 1, this._squareSize + 1);
-        this._saveManager.Erase({x: posData.cornerX, y: posData.cornerY})
+        this._saveManager.Erase(this._saveManager.Key(posData.cornerX, posData.cornerY));
     }
 
     EndErase(e) {
-        this._drawingOn = false;
+        
     }
-
-    DrawCell(cell) {
-        this._contextEle.fillStyle = cell._color;
-        this._contextEle.fillRect(cell._x, cell._y, this._squareSize, this._squareSize);
-    }
-
+    
     EraseCell(key) {
-        this._contextEle.clearRect(key.x, key.y - 1, this._squareSize + 1 , this._squareSize + 1);
+        this._contextEle.clearRect(key.x, key.y, this._squareSize, this._squareSize);
+    }
+    DrawCell(cell) { 
+        this.DrawLine(cell._edge, cell._x, cell._y, this._squareSize);
+        this._contextEle.closePath();
     }
 
     Pan(e, lastDragX) {
         let styleLeft = (e.clientX - lastDragX) + 'px';
+        let styleRight = (e.clientX + lastDragX) + 'px';
 
         this._canvasEle.style.left = styleLeft;
+        this._canvasEle.style.right = styleRight;
     }
 
     Clear() {

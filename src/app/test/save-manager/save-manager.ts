@@ -1,5 +1,5 @@
-import CanvasManager from '../canvas/canvas-manager';
-import { ICanvas } from '../canvas/canvas-interface';
+import CanvasManager from '../canvas/canvas-manager/canvas-manager';
+import { ICanvas } from '../canvas/interfaces/canvas-interface';
 import { ICell } from './cell';
 import SocketManager from '../socket-helper/sockets';
 
@@ -32,16 +32,32 @@ export default class SaveManager {
 
     Load() {
         this._savesMap.forEach(cell => {
-            this._canvas.DrawCell(cell);
+            this.asyncLoad(cell);
         })
+    }
+
+    private async asyncLoad(cell) {
+        this._canvas.DrawCell(cell);
     }
 
     LoadCell(cell) {
         this._savesMap.set(this.Key(cell._x, cell._y), cell);
+        this.asyncLoadCell(cell);
+    }
+
+    private async asyncLoadCell(cell) {
         this._canvas.DrawCell(cell);
     }
 
     EraseCell(key) {
-        this._canvas.EraseCell(key);
+        //this._canvas.EraseCell(key);
+    }
+
+    Clear() {
+        this._socketManager.PublishClear();
+    }
+
+    ClearAll() {
+        this._canvas.Clear();
     }
 }

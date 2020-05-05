@@ -1,4 +1,4 @@
-import { ICanvas } from './canvas-interface';
+import { ICanvas } from '../interfaces/canvas-interface';
 
 export class GridCanvas implements ICanvas{
     _id: any;

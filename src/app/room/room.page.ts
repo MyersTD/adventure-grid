@@ -9,7 +9,6 @@ import { sizeof } from '../sizeof.compressed';
 import { Storage, IonicStorageModule } from '@ionic/storage';
 import { Request } from '../requests';
 import * as io from 'socket.io-client';
-import { canvasCell } from './canvasCell.components';
 import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 let squareSize = 30

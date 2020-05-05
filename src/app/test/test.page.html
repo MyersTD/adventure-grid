@@ -22,7 +22,7 @@
       <ion-button class="tool-button control-button" (click)="redo()">Redo</ion-button>
     </ion-row>
     <ion-row>
-      <ion-button [ngClass]="_mode == 'drawing' ? 'tool-button selected' : 'tool-button'" (click)="selectDraw()">Square</ion-button>
+      <ion-button [ngClass]="_mode == 'square' ? 'tool-button selected' : 'tool-button'" (click)="selectDraw()">Square</ion-button>
     </ion-row>
     <ion-row>
       <ion-button [ngClass]="_mode == 'line' ? 'tool-button selected' : 'tool-button'" (click)="selectLine()">Line</ion-button>
