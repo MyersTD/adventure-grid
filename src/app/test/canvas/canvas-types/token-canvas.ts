@@ -49,7 +49,7 @@ export class TokenCanvas implements ICanvas {
     MouseDown(e) {
         switch(e.which) {
             case 1: 
-                this.Draw(e);
+                if (!this._isDragging) this.Draw(e);
                 break;
             case 2:
                 break;
@@ -94,6 +94,7 @@ export class TokenCanvas implements ICanvas {
             let token = new TokenCell(pos.cornerX, pos.cornerY, this._currentIcon, this._currentColor);
             this._tokenMap.set(key.string(), token);
             token.Draw(this);
+            this.Publish(token, 'add');
         }
      }
 
@@ -123,9 +124,12 @@ export class TokenCanvas implements ICanvas {
                 this.DrawAll();
             } else {
                 let lastKey = new Key(this._lastDragX, this._lastDragY)
+                let lastToken = new TokenCell(lastKey.x, lastKey.y, this._grabbedToken._icon, this._grabbedToken._color);
+                this.Publish(lastToken, 'remove');
                 this._tokenMap.delete(lastKey.string())
                 this._tokenMap.set(newKey.string(), this._grabbedToken)  
                 let token = new TokenCell(this._grabbedToken._x, this._grabbedToken._y, this._grabbedToken._icon, this._grabbedToken._color)
+                this.Publish(token, 'add');
             }
         }
      }
@@ -136,9 +140,64 @@ export class TokenCanvas implements ICanvas {
         if (this._tokenMap.has(key.string())) {
             let token = this._tokenMap.get(key.string());
             token.Erase(this);
+            this.Publish(token, 'remove');
             this._tokenMap.delete(key.string());
         }
      }
 
-    Clear() { }
+     LoadHistory(data) {
+        if (data.history != null) {
+            let newMap = new Map(JSON.parse(data.history))
+            newMap.forEach((cell:any) => {
+                let src = cell._icon;
+                let icon = new Image();
+                icon.src = src;
+                icon.onload = () => {
+                    let newCell = new TokenCell(cell._x, cell._y, icon, cell._color);
+                    let key = new Key(cell._x, cell._y);
+                    this._tokenMap.set(key.string(), newCell);
+                    newCell.Draw(this);
+                }
+            })
+        }
+     }
+
+     Subscribe(data) {
+         if (data.cell != null) {
+             let src = data.cell._icon;
+             let icon = new Image();
+             icon.src = src;
+             icon.onload = () => {
+                let cell = new TokenCell(data.cell._x, data.cell._y, icon, data.cell._color);
+                let key = new Key(cell._x, cell._y);
+                if (data.mode == 'add') {
+                    this._tokenMap.set(key.string(), cell);
+                    cell.Draw(this); 
+                } else if (data.mode == 'remove') {
+                    if (this._tokenMap.has(key.string())) {
+                        this._tokenMap.delete(key.string());
+                    }
+                    cell.Erase(this);
+                }
+             }
+         } 
+         if (data.mode == 'clear') {
+             this._contextEle.clearRect(0, 0, this._width, this._height);
+             this._tokenMap.clear();
+         }
+     }
+
+     Publish(cell, mode) {
+        let stringedCell = cell;
+         if (cell != null) {
+            stringedCell = {_x: cell._x, _y: cell._y, _icon: cell._icon.src, _color: cell._color};
+         } 
+         this._sync.Publish(this._id, mode, stringedCell);
+     }
+
+    Clear() { 
+        this._contextEle.clearRect(0, 0, this._width, this._height);
+        this._tokenMap.clear();
+        this.Publish(null, 'clear')
+    }
 }

@@ -3,6 +3,7 @@ export interface ICell {
     _y: number;
     Draw(canvas): void;
     Erase(canvas): void;
+    TempErase?(canvas): void;
 }
 
 export class Key {
@@ -16,12 +17,14 @@ export class Key {
 export class LineKey {
     x: number;
     y: number;
-    edge: number;
+    x2: number;
+    y2: number;
 
-    constructor(x, y, edge) {
+    constructor(x, y, x2, y2) {
         this.x = x;
         this.y = y;
-        this.edge = edge;
+        this.x2 = x2;
+        this.y2 = y2;
     }
-    string() {return this.x.toString()+','+this.y.toString()+','+this.edge.toString()}
+    string() {return this.x.toString()+','+this.y.toString()+','+this.x2.toString()+','+this.y2.toString()}
 }

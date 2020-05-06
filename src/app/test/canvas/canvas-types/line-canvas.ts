@@ -3,6 +3,7 @@ import { ICell, LineKey } from '../../cells/interface/cell-interface';
 import { sizeof } from '../../../sizeof.compressed';
 import { LineCell } from '../../cells/line-cell';
 import { SquareCanvas } from './square-canvas';
+import { LinePreviewCanvas } from './line-prev-canvas';
 
 export class LineCanvas implements ICanvas {
     _id: any;
@@ -14,6 +15,11 @@ export class LineCanvas implements ICanvas {
     _cellMap: Map<string, ICell>
     _isDrawing: boolean;
     _currentColor: any;
+    _lastDragX;
+    _lastDragY;
+    _anchoredCell;
+    _previewCanvas;
+    _sync;
     GetSquarePos: (e, sqSz, w, h) => any;
 
     constructor(id, sqSz, w, h, getSqFunc) {
@@ -46,21 +52,20 @@ export class LineCanvas implements ICanvas {
         switch(e.which) {
             case 1: 
                 this._isDrawing = true;
-                this.Draw(e);
+                this.Anchor(e);
                 break;
             case 2:
                 break;
             case 3:
                 this._isDrawing = true;
-                this.Erase(e);
-                console.log('delete', this._cellMap)
+                this.Anchor(e);
         }
     }
 
     MouseMove(e) {
         switch(e.which) {
             case 1: 
-                if (this._isDrawing) this.Draw(e);
+                if (this._isDrawing) this.Drag(e);
                 break;
             case 2: 
                 break;
@@ -70,42 +75,125 @@ export class LineCanvas implements ICanvas {
     }
 
     MouseUp(e) {
+        let key1 = new LineKey(this._anchoredCell._x, this._anchoredCell._y, this._anchoredCell._x2, this._anchoredCell._y2);
+        let key2 = new LineKey(this._anchoredCell._x2, this._anchoredCell._y2, this._anchoredCell._x, this._anchoredCell._y);
         switch(e.which) {
             case 1:
                 this._isDrawing = false;
+                if (!this._cellMap.has(key1.string())) {
+                    this._anchoredCell.Draw(this);
+                    this._cellMap.set(key1.string(), this._anchoredCell);
+                    this.Publish(this._anchoredCell, 'add');
+                }
+                this._previewCanvas._contextEle.clearRect(0, 0, this._previewCanvas._width, this._previewCanvas._height)
                 break;
             case 2:
                 break;
             case 3:
                 this._isDrawing = false;
+                if (this._cellMap.has(key1.string())) {
+                    let cell = this._cellMap.get(key1.string())
+                    this._cellMap.delete(key1.string());
+                    this._anchoredCell.Erase(this);
+                    this.Publish(cell, 'remove');
+                } 
+                if (this._cellMap.has(key2.string())) {
+                    let cell = this._cellMap.get(key2.string())
+                    this._cellMap.delete(key2.string());
+                    this._anchoredCell.Erase(this);
+                    this.Publish(cell, 'remove');
+                }
+                this._previewCanvas._contextEle.clearRect(0, 0, this._previewCanvas._width, this._previewCanvas._height)
         }
     }
 
-    Draw(e) {
+    Drag(e) {
         let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
-        if (pos.edge) {
-            let key = new LineKey(pos.cornerX, pos.cornerY, pos.edge);
-            let cell = new LineCell(pos.cornerX, pos.cornerY, pos.edge, this._currentColor);
-            this._cellMap.set(key.string(), cell);
-            cell.Draw(this);
-        }
+        
+        let corner = this.GetClosestCorner(pos);
+        this._anchoredCell._x2 = corner.x;
+        this._anchoredCell._y2 = corner.y;
+        
+        this._previewCanvas._contextEle.clearRect(0, 0, this._previewCanvas._width, this._previewCanvas._height)
+        this._anchoredCell.Draw(this._previewCanvas);
+    }
+
+    Anchor(e) {
+        let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
+        
+        let corner = this.GetClosestCorner(pos);
+        this._anchoredCell = new LineCell(corner.x, corner.y, this._currentColor);
+    }
+
+    Draw(e) {
+        
     }
 
     Erase(e) {
         let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
-        if (pos.edge) {
-            let key = new LineKey(pos.cornerX, pos.cornerY, pos.edge);
-            if (this._cellMap.has(key.string())) {
-                let cell = this._cellMap.get(key.string());
-                //cell.Erase(this);
-                this._cellMap.delete(key.string());
-            }
-        }
-        this._contextEle.clearRect(pos.cornerX, pos.cornerY, this._squareSize, this._squareSize)
+        let corner = this.GetClosestCorner(pos);
+        this._anchoredCell._x2 = corner.x;
+        this._anchoredCell._y2 = corner.y;
+        
+        this._previewCanvas._contextEle.clearRect(0, 0, this._previewCanvas._width, this._previewCanvas._height)
+        this._anchoredCell.TempErase(this._previewCanvas);
     }
 
     Clear() {
         this._contextEle.clearRect(0, 0, this._width, this._height);
         this._cellMap.clear();
+        this.Publish(null, 'clear');
     } 
+
+    LoadHistory(data) {
+        if (data.history != null) {
+            let newMap = new Map(JSON.parse(data.history))
+            newMap.forEach((cell:any) => { 
+                let newCell = new LineCell(cell._x, cell._y, cell._color);
+                newCell._x2 = cell._x2;
+                newCell._y2 = cell._y2;
+                let key = new LineKey(cell._x, cell._y, cell._x2, cell._y2);
+                this._cellMap.set(key.string(), newCell);
+                newCell.Draw(this);
+            })
+        }
+    }
+
+    Subscribe(data) {
+        if (data.cell != null) {
+            let cell = new LineCell(data.cell._x, data.cell._y, data.cell._color);
+            cell._x2 = data.cell._x2;
+            cell._y2 = data.cell._y2;
+            let key = new LineKey(data.cell._x, data.cell._y, data.cell._x2, data.cell._y2);
+            if (data.mode == 'add') {
+                this._cellMap.set(key.string(), cell);
+                cell.Draw(this); 
+            } else if (data.mode == 'remove') {
+                if (this._cellMap.has(key.string())) {
+                    this._cellMap.delete(key.string());
+                }
+                cell.Erase(this);
+            }
+        } 
+        if (data.mode == 'clear') {
+            this._contextEle.clearRect(0, 0, this._width, this._height);
+            this._cellMap.clear();
+        }
+    }
+
+    Publish(cell, mode) {
+       let stringedCell = cell;
+        if (cell != null) {
+           stringedCell = {_x: cell._x, _y: cell._y, _x2: cell._x2, _y2: cell._y2, _color: cell._color};
+        } 
+        this._sync.Publish(this._id, mode, stringedCell);
+    }
+
+    GetClosestCorner(pos) {
+        if (pos.corner == 'top-left') return {x: pos.cornerX, y: pos.cornerY}
+        else if (pos.corner == 'top-right') return {x: pos.cornerX + this._squareSize, y: pos.cornerY}
+        else if (pos.corner == 'bottom-left') return {x: pos.cornerX, y: pos.cornerY + this._squareSize}
+        else if (pos.corner == 'bottom-right') return {x: pos.cornerX + this._squareSize, y: pos.cornerY + this._squareSize}  
+        else return {x: pos.centerX, y: pos.centerY}
+    }
 }

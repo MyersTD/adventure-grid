@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import CanvasManager from './canvas/canvas-manager/canvas-manager'
 import { SyncManager } from './sync/sync-manager';
+import { LinePreviewCanvas } from './canvas/canvas-types/line-prev-canvas';
 
 
 @Component({

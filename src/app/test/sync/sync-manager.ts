@@ -29,7 +29,10 @@ export class SyncManager {
             canvas._canvas._sync = this;
         })
 
+        //Load history map of the square-canvas
         this.LoadAll('square');
+        this.LoadAll('token');
+        this.LoadAll('line');
     }
 
     Subscribe(data) {

@@ -8,6 +8,7 @@ export interface ICanvas {
     _currentColor?: any;
     _currentIcon?: any;
     _sync?: any;
+    _previewCanvas?: any;
     MouseDown(e): void;
     MouseUp(e): void;
     MouseMove(e): void;
