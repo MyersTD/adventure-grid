@@ -113,7 +113,7 @@ canvas {
 }
 
 #chat-box {
-  width: 25%;
+  width: 20%;
   min-width: 330px;
   position: fixed;
   bottom: 0;
@@ -130,6 +130,7 @@ canvas {
 
 #chat-history {
   width: 100%;
+  max-height: 350px;
   margin-top: 50px;
   display: flex;
   flex-direction: column-reverse;
@@ -197,31 +198,49 @@ ion-label {
   margin-top: 0px;
 }
 
-#hide-chat-box, #show-chat-box{
+#hide-chat-box {
   margin: 0;
   position: fixed;
   top: 50%;
-  left: 74%;
+  left: 77%;
   transform: translate(-50%, -50%);
   color: rgba($color: #000000, $alpha: 0.2)
 }
 
-#hide-chat-box:hover, #show-chat-box:hover {
+#show-chat-box {
+  margin: 0;
+  position: fixed;
+  top: 50%;
+  left: 96%;
+  transform: translate(-50%, -50%);
+  color: rgba($color: #000000, $alpha: 0.2)
+}
+
+#hide-roll-box, #show-roll-box {
+  color: rgba($color: #000000, $alpha: 0.2)
+}
+
+#hide-chat-box:hover, #show-chat-box:hover, #hide-roll-box:hover, #show-roll-box:hover {
   color: rgba($color: #000000, $alpha: 1.0)
 }
 
-#show-chat-box {
-  display: none;
+.roll-result {
+  text-align: right;
+  max-width: 40px;
 }
 
 @media screen and ( max-width: 1300px ){
   #hide-chat-box {
-    transform: translateX(-100px);
+    transform: translateX(-150px);
   }
 }
 
 @media screen and ( max-width: 992px ){
   #hide-chat-box {
-    transform: translateX(-150px);
+    transform: translateX(-200px);
   }
+}
+
+.system-message {
+  background-color: lawngreen
 }
