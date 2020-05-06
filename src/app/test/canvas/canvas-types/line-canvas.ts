@@ -80,7 +80,7 @@ export class LineCanvas implements ICanvas {
         switch(e.which) {
             case 1:
                 this._isDrawing = false;
-                if (!this._cellMap.has(key1.string())) {
+                if (!this._cellMap.has(key1.string()) || !this._cellMap.has(key2.string())) {
                     this._anchoredCell.Draw(this);
                     this._cellMap.set(key1.string(), this._anchoredCell);
                     this.Publish(this._anchoredCell, 'add');

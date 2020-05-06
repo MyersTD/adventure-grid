@@ -12,6 +12,7 @@ import { LinePreviewCanvas } from './canvas/canvas-types/line-prev-canvas';
 export class TestPage implements OnInit {
 
   _lastDragX: any;
+  _lastDragY: any;
   _canvasContainer: any;
   _panning: any;
   _canvasList: Map<String, CanvasManager>;
@@ -20,6 +21,7 @@ export class TestPage implements OnInit {
   _icon: any;
   _iconsList: Array<any>;
   _selectedColor: any;
+  _linePreviewCanvas: any;
 
   constructor() { 
     this._canvasList = new Map<String, CanvasManager>();
@@ -54,6 +56,7 @@ export class TestPage implements OnInit {
       switch(e.which) {
           case 2:
               this._lastDragX = e.clientX - this._canvasList.get('background')._canvas._canvasEle.offsetLeft;
+              this._lastDragY = e.clientY - this._canvasList.get('background')._canvas._canvasEle.offsetTop;
               break;
           default:
             if (this._canvasList.has(this._mode)) {
@@ -65,7 +68,7 @@ export class TestPage implements OnInit {
     e.preventDefault();
       switch(e.which) {
           case 2: 
-              this.Pan(e, this._lastDragX);
+              this.Pan(e);
               break;
           default:
             if (this._canvasList.has(this._mode)) {
@@ -159,14 +162,26 @@ export class TestPage implements OnInit {
     }
   }
 
-  Pan(e, lastDragX) {
+  Pan(e) {
+    let styleLeft = (e.clientX - this._lastDragX) + 'px';
+    let styleRight = (e.clientX + this._lastDragX) + 'px';
+    let styleTop = (e.clientY - this._lastDragY) + 'px';
+    this._linePreviewCanvas = this._canvasList.get('line')._canvas._previewCanvas;
+    //let styleBottom = (e.clientY + this._lastDragY) + 'px';
+
     this._canvasList.forEach(canvas => {
-      let styleLeft = (e.clientX - lastDragX) + 'px';
-      let styleRight = (e.clientX + lastDragX) + 'px';
-  
       canvas._canvas._canvasEle.style.left = styleLeft;
       canvas._canvas._canvasEle.style.right = styleRight;
+      canvas._canvas._canvasEle.style.top = styleTop;
+      //canvas._canvas._canvasEle.style.bottom = styleBottom;
     })
+    this._canvasContainer.style.left = styleLeft;
+    this._canvasContainer.style.right = styleRight;
+    this._canvasContainer.style.top = styleTop;
+    this._linePreviewCanvas._canvasEle.style.left = styleLeft;
+    this._linePreviewCanvas._canvasEle.style.right = styleRight;
+    this._linePreviewCanvas._canvasEle.style.top = styleTop;
+    //this._canvasContainer.style.bottom = styleBottom;
   }
 
   clearCanvas() {

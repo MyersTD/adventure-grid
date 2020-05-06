@@ -119,12 +119,10 @@ export class SquareCanvas implements ICanvas {
     Draw(e) {
         let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
         let key = new Key(pos.cornerX, pos.cornerY);
-        if (!this._cellMap.has(key.string())) {
-            let cell = new SquareCell(pos.cornerX, pos.cornerY, this._currentColor);
-            this._cellMap.set(key.string(), cell);
-            cell.Draw(this);
-            this.Publish(cell, 'add');
-        }
+        let cell = new SquareCell(pos.cornerX, pos.cornerY, this._currentColor);
+        this._cellMap.set(key.string(), cell);
+        cell.Draw(this);
+        this.Publish(cell, 'add');
     }
 
     Erase(e) {

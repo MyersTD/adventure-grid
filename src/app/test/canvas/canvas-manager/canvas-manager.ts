@@ -49,12 +49,15 @@ function CalcCorners(sqSz, vDiff, absDiffX, absDiffY) {
 
 function CalcSquarePos(e, sqSz, w, h) {
     let left = parseInt(e.target.style.left);
-    let x1 = e.offsetX - left, y1 = e.offsetY;
+    let top = parseInt(e.target.style.top);
+    let x1 = e.offsetX - left, 
+        y1 = e.offsetY - top/2;
     let variableDiff = 6;
     let padding = CalculatePadding(w, h, sqSz);
-    let x2 = (Math.floor(x1 / sqSz - (sqSz/w) - .1) * sqSz + padding.left) - sqSz
-    let y2 = (Math.floor(y1 / sqSz - (sqSz/h) - .1) * sqSz + padding.top) - sqSz
-    let diffX = x2 - x1, diffY = y2 - y1;
+    let x2 = (Math.floor(x1 / sqSz - (sqSz/w) - .1) * sqSz + padding.left) - sqSz,
+        y2 = (Math.floor(y1 / sqSz - (sqSz/h) - .1) * sqSz + padding.top) - sqSz
+    let diffX = x2 - x1, 
+        diffY = y2 - y1;
     // console.log('x1', x1, 'y1', y1, 'x2', x2, 'y2', y2)
     // console.log('dX', diffX, 'dY', diffY);
     return {
