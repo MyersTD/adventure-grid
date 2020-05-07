@@ -4,6 +4,7 @@ import { SyncManager } from './sync/sync-manager';
 import { LinePreviewCanvas } from './canvas/canvas-types/line-prev-canvas';
 import { ChatManager } from './chat-manager/chat'
 import { Storage, IonicStorageModule } from '@ionic/storage';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-test',
@@ -29,7 +30,7 @@ export class TestPage implements OnInit {
   _linePreviewCanvas: any;
   _chatManager: any;
 
-  constructor(private storage: Storage) { 
+  constructor(private storage: Storage, private alertCtrl: AlertController) { 
     this._canvasList = new Map<String, CanvasManager>();
     this._iconsList = new Array<any>();
     this._iconsList.push(this.CreateImage('../../assets/tokens/empty.png', 'empty'))
@@ -49,7 +50,7 @@ export class TestPage implements OnInit {
     this._mode = 'square';
     this._styleLeft = 0;
     this._styleTop = 0;
-    this._chatManager = new ChatManager();
+    this._chatManager = new ChatManager(this.storage, this.alertCtrl);
   }
 
   CreateImage(src, id) {
@@ -175,6 +176,29 @@ export class TestPage implements OnInit {
     } else {
       this._tokenSelected = false;
     }
+  }
+
+  setNickname() {
+    let alert = this.alertCtrl.create({
+      inputs: [
+        {
+          name: 'nickname',
+          placeholder: 'nickname'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Done',
+          handler: data => {
+            this.storage.set('nickname', data.nickname);
+            this._chatManager.nickName = data.nickname;
+          }
+        }
+      ],
+      
+    }).then((al) => {
+      al.present();
+    })
   }
 
   hideGrid() {

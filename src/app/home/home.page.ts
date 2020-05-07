@@ -41,11 +41,6 @@ export class HomePage {
         }
       })
     }
-  
-    SetNickname(nick) {
-      console.log(nick)
-      this.storage.set('nickname', nick);
-    }
 
     socketConnect() {
 

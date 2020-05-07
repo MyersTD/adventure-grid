@@ -31,7 +31,7 @@
   }
 
   #chat-box {
-    width: 15%;
+    width: 20%;
     min-width: 330px;
     position: fixed;
     bottom: 0;
@@ -134,18 +134,31 @@
     display: none;
   }
   
+  .roll-result {
+    text-align: right;
+    max-width: 30px;
+    background-color: green;
+    border-radius: 2px;
+    color: black;
+    text-align: center;
+    font-weight: bolder;
+  }
+  
   @media screen and ( max-width: 1300px ){
     #hide-chat-box {
-      transform: translateX(-100px);
+      transform: translateX(-150px);
     }
   }
   
   @media screen and ( max-width: 992px ){
     #hide-chat-box {
-      transform: translateX(-150px);
+      transform: translateX(-200px);
     }
   }
-
+  
+  .system-message {
+    background-color: lawngreen
+  }
   #canvas {
     overflow: auto;
     border: lightgrey 1px solid;

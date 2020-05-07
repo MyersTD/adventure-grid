@@ -1,7 +1,40 @@
+import { Storage } from '@ionic/storage'
+import { AlertController } from '@ionic/angular';
+
 export class ChatManager {
 
     public hideChatBox = false;
     public hideRollBox = false;
+
+    public nickName;
+
+    constructor(private storage: Storage, private alertCtrl: AlertController) {
+        this.storage.get('nickname').then((nickname) => {
+            if (nickname) {
+                this.nickName = nickname;
+            } else {
+                let alert = this.alertCtrl.create({
+                    inputs: [
+                      {
+                        name: 'nickname',
+                        placeholder: 'nickname'
+                      }
+                    ],
+                    buttons: [
+                      {
+                        text: 'Done',
+                        handler: data => {
+                          this.storage.set('nickname', data.nickname);
+                        }
+                      }
+                    ],
+                    
+                  }).then((al) => {
+                    al.present();
+                  })
+            }
+        })
+    }
 
     ToggleRoll() {
         this.hideRollBox = !this.hideRollBox;
@@ -146,10 +179,10 @@ export class ChatManager {
         const message = document.getElementById('message-template').cloneNode(false);
         const rollResult = document.getElementById('roll-result').cloneNode(false);
 
-        message.textContent = result;
+        message.textContent = this.nickName + ': ' + result;
         rollResult.textContent = answer;
 
-        newRoll.appendChild(avatar);
+        //newRoll.appendChild(avatar);
         newRoll.appendChild(message);
         newRoll.appendChild(rollResult);
         chatLog.appendChild(newRoll);
@@ -162,14 +195,14 @@ export class ChatManager {
         // As long as the message text isn't blank, we'll insert it into the chat log
         if (result !== '') {
             // Get #chat-log and clone a template child to work from
-            const logItem = document.getElementById('chat-log');
-            const child = document.getElementById('chat-template').cloneNode(true);
-
-            // Set the textContent in the new entry
-            child.lastChild.previousSibling.textContent = result;
-
+            const chatLog = document.getElementById('chat-log');
+            const item = document.createElement('ion-item');
+            const message = document.getElementById('message-template').cloneNode(false);
+            message.textContent = this.nickName + ': ' + result;
+            
             // Append it to #chat-log
-            logItem.appendChild(child);
+            item.appendChild(message);
+            chatLog.appendChild(item);
 
             // Reset the message textarea field
             document.getElementById('message-text').setAttribute('value', '');
