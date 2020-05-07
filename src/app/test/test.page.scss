@@ -29,7 +29,123 @@
     height: 100%;
     transition: transform .3s;
   }
+
+  #chat-box {
+    width: 15%;
+    min-width: 330px;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background-color: black;//#fff;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-flow: column;
+    height: 100%;
+    border-radius: 20px;
+    border-style: solid;
+    border-color: black;//#fff;
+  }
   
+  #chat-history {
+    width: 100%;
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  
+  .plus-minus {
+    display: flex;
+    vertical-align: middle;
+    margin-top: 15px; 
+  }
+  
+  #chat-input {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    padding: 0px 0px 0px 0px;
+    ion-item {
+      width: 100%;
+    }
+  }
+  
+  #mod-box, #sides-box, #dice-box, .roll-label {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .avatar {
+    margin-right: 0.5em;
+  }
+  
+  #roll-button {
+    width: 100%;
+    padding: 0px 5px;
+  }
+  
+  div.scrollable {
+    overflow-y: auto;
+    width: 100%;
+  }
+  
+
+  ion-range {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  
+  ion-label {
+    margin-top: 5px;
+    margin-bottom: 4px;
+  }
+  
+  #roll-box {
+    width: 100%;
+  }
+  
+  #roll-box > ion-list {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  
+  #chat-input > ion-item > ion-button {
+    margin: 0px;
+  }
+  
+  #chat-input > ion-item > ion-textarea {
+    margin-top: 0px;
+  }
+  
+  #hide-chat-box, #show-chat-box{
+    margin: 0;
+    position: fixed;
+    top: 50%;
+    left: 74%;
+    transform: translate(-50%, -50%);
+    color: rgba($color: #000000, $alpha: 0.2)
+  }
+  
+  #hide-chat-box:hover, #show-chat-box:hover {
+    color: rgba($color: #000000, $alpha: 1.0)
+  }
+  
+  #show-chat-box {
+    display: none;
+  }
+  
+  @media screen and ( max-width: 1300px ){
+    #hide-chat-box {
+      transform: translateX(-100px);
+    }
+  }
+  
+  @media screen and ( max-width: 992px ){
+    #hide-chat-box {
+      transform: translateX(-150px);
+    }
+  }
+
   #canvas {
     overflow: auto;
     border: lightgrey 1px solid;

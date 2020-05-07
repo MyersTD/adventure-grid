@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import CanvasManager from './canvas/canvas-manager/canvas-manager'
 import { SyncManager } from './sync/sync-manager';
 import { LinePreviewCanvas } from './canvas/canvas-types/line-prev-canvas';
-
+import { ChatManager } from './chat-manager/chat'
+import { Storage, IonicStorageModule } from '@ionic/storage';
 
 @Component({
   selector: 'app-test',
@@ -13,6 +14,10 @@ export class TestPage implements OnInit {
 
   _lastDragX: any;
   _lastDragY: any;
+  _styleTop: any;
+  _styleLeft: any;
+  _offsetX: any;
+  _offsetY: any;
   _canvasContainer: any;
   _panning: any;
   _canvasList: Map<String, CanvasManager>;
@@ -22,8 +27,9 @@ export class TestPage implements OnInit {
   _iconsList: Array<any>;
   _selectedColor: any;
   _linePreviewCanvas: any;
+  _chatManager: any;
 
-  constructor() { 
+  constructor(private storage: Storage) { 
     this._canvasList = new Map<String, CanvasManager>();
     this._iconsList = new Array<any>();
     this._iconsList.push(this.CreateImage('../../assets/tokens/empty.png', 'empty'))
@@ -41,6 +47,9 @@ export class TestPage implements OnInit {
     this._iconsList.push(this.CreateImage('../../assets/tokens/wizard.png', 'wizard'))
     this._iconsList.push(this.CreateImage('../../assets/tokens/warlock.png', 'warlock'))
     this._mode = 'square';
+    this._styleLeft = 0;
+    this._styleTop = 0;
+    this._chatManager = new ChatManager();
   }
 
   CreateImage(src, id) {
@@ -50,13 +59,20 @@ export class TestPage implements OnInit {
     return img;
   }
 
+  Offset() {
+    let bound = this._canvasList.get('background')._canvas._canvasEle.getBoundingClientRect();
+    this._offsetX = bound.left;
+    this._offsetY = bound.top;
+  }
+
   SetupListeners() {
     this._canvasContainer.addEventListener('mousedown', e => {
       e.preventDefault();
       switch(e.which) {
           case 2:
-              this._lastDragX = e.clientX - this._canvasList.get('background')._canvas._canvasEle.offsetLeft;
-              this._lastDragY = e.clientY - this._canvasList.get('background')._canvas._canvasEle.offsetTop;
+              this.Offset();
+              this._lastDragX = e.clientX - this._offsetX;
+              this._lastDragY = e.clientY - this._offsetY;
               break;
           default:
             if (this._canvasList.has(this._mode)) {
@@ -88,6 +104,11 @@ export class TestPage implements OnInit {
       }
   })
 
+  this._canvasContainer.addEventListener('dblclick', e => {
+    e.preventDefault();
+    console.log('dbl click');
+  })
+
   this._canvasContainer.addEventListener('contextmenu', e => {
     e.preventDefault();
   })
@@ -114,6 +135,8 @@ export class TestPage implements OnInit {
     this._canvasList.set('line', new CanvasManager(this._canvasContainer, 'line', 30, 2048, 2048, session));
     this.setColor('black');
     new SyncManager(this._canvasList);
+    window.onscroll = (e) => {this.Offset();}
+    window.onresize = (e) => {this.Offset();}
   }
 
   selectColor(e) {
@@ -163,25 +186,33 @@ export class TestPage implements OnInit {
   }
 
   Pan(e) {
-    let styleLeft = (e.clientX - this._lastDragX) + 'px';
-    let styleRight = (e.clientX + this._lastDragX) + 'px';
-    let styleTop = (e.clientY - this._lastDragY) + 'px';
+
+    e.preventDefault();
+    e.stopPropagation();
+  
+    let mouseX = e.clientX - this._offsetX;
+    let mouseY = e.clientY - this._offsetY;
+
+    let dx = mouseX - this._lastDragX;
+    let dy = mouseY - this._lastDragY;
+
+    this._lastDragX = mouseX;
+    this._lastDragY = mouseY;
+
+    this._styleLeft += dx;
+    this._styleTop += dy;
+    //console.log('mouseX', mouseX, 'mouseY', mouseY, 'dx', dx, 'dy', dy, 'styleLeft', this._styleLeft, 'styleTop', this._styleTop)
+
     this._linePreviewCanvas = this._canvasList.get('line')._canvas._previewCanvas;
-    //let styleBottom = (e.clientY + this._lastDragY) + 'px';
 
     this._canvasList.forEach(canvas => {
-      canvas._canvas._canvasEle.style.left = styleLeft;
-      canvas._canvas._canvasEle.style.right = styleRight;
-      canvas._canvas._canvasEle.style.top = styleTop;
-      //canvas._canvas._canvasEle.style.bottom = styleBottom;
+      canvas._canvas._canvasEle.style.left = this._styleLeft + 'px';
+      canvas._canvas._canvasEle.style.top = this._styleTop + 'px';
     })
-    this._canvasContainer.style.left = styleLeft;
-    this._canvasContainer.style.right = styleRight;
-    this._canvasContainer.style.top = styleTop;
-    this._linePreviewCanvas._canvasEle.style.left = styleLeft;
-    this._linePreviewCanvas._canvasEle.style.right = styleRight;
-    this._linePreviewCanvas._canvasEle.style.top = styleTop;
-    //this._canvasContainer.style.bottom = styleBottom;
+    this._canvasContainer.style.left = this._styleLeft + 'px';
+    this._canvasContainer.style.top = this._styleTop + 'px';
+    this._linePreviewCanvas._canvasEle.style.left = this._styleLeft + 'px';
+    this._linePreviewCanvas._canvasEle.style.top = this._styleTop + 'px';
   }
 
   clearCanvas() {

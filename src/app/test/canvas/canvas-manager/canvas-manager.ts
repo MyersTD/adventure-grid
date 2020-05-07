@@ -52,6 +52,7 @@ function CalcSquarePos(e, sqSz, w, h) {
     let top = parseInt(e.target.style.top);
     let x1 = e.offsetX - left, 
         y1 = e.offsetY - top/2;
+    if (left < 0) {x1 = Math.abs(e.offsetX - left/2)}
     let variableDiff = 6;
     let padding = CalculatePadding(w, h, sqSz);
     let x2 = (Math.floor(x1 / sqSz - (sqSz/w) - .1) * sqSz + padding.left) - sqSz,
@@ -92,29 +93,25 @@ export default class CanvasManager {
     constructor(parent, id, squareSize, width, height, session) {
         //this._saveManager = new SaveManager(this)
         this._canvas = CanvasFactory(id, height, width, squareSize, session);
-        this._canvas._canvasEle.id = id;
-        this._canvas._canvasEle.style.position = 'absolute';
-        this._canvas._canvasEle.style.top = '0';
-        this._canvas._canvasEle.style.left = '0';
-        this._canvas._canvasEle.style.bottom = '0';
-        this._canvas._canvasEle.style.right = '0';
-        this._canvas._canvasEle.style.backgroundColor = 'transparent';
-        this._canvas._canvasEle.style.margin = 'auto';
-        this._canvas._canvasEle.style.pointerEvents = 'none';
+        this.SetStyle(this._canvas);
         this._parent = parent;
         this._parent.appendChild(this._canvas._canvasEle);
         if (id == 'line') {
             let previewCanvas = new LinePreviewCanvas('preview', squareSize, width, height, CalcSquarePos);
-            previewCanvas._canvasEle.style.position = 'absolute';
-            previewCanvas._canvasEle.style.top = '0';
-            previewCanvas._canvasEle.style.left = '0';
-            previewCanvas._canvasEle.style.bottom = '0';
-            previewCanvas._canvasEle.style.right = '0';
-            previewCanvas._canvasEle.style.backgroundColor = 'transparent';
-            previewCanvas._canvasEle.style.margin = 'auto';
-            previewCanvas._canvasEle.style.pointerEvents = 'none';
+            this.SetStyle(previewCanvas);
             this._canvas._previewCanvas = previewCanvas;
             this._parent.appendChild(previewCanvas._canvasEle);
         }
+    }
+
+    SetStyle(canvas) {
+        canvas._canvasEle.style.position = 'absolute';
+        canvas._canvasEle.style.top = '0';
+        canvas._canvasEle.style.left = '0';
+        canvas._canvasEle.style.bottom = '0';
+        canvas._canvasEle.style.right = '0';
+        canvas._canvasEle.style.backgroundColor = 'transparent';
+        canvas._canvasEle.style.margin = 'auto';
+        canvas._canvasEle.style.pointerEvents = 'none';
     }
 }

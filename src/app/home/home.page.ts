@@ -1,11 +1,6 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { Base64ToGallery, Base64ToGalleryOptions } from '@ionic-native/base64-to-gallery/ngx';
-import { Platform, ToastController} from '@ionic/angular'; 
-import { NumberSymbol } from '@angular/common';
+import { Platform, ToastController, AlertController} from '@ionic/angular'; 
 import { Scroll, Router } from '@angular/router';
-import { CONTEXT_NAME } from '@angular/compiler/src/render3/view/util';
-import { ThrowStmt } from '@angular/compiler';
-import { sizeof } from '../sizeof.compressed';
 import { Storage, IonicStorageModule } from '@ionic/storage';
 import { Request } from '../requests';
 
@@ -19,11 +14,39 @@ export class HomePage {
     s_id: any;
     sessions: Array<any>
 
-    constructor(private storage: Storage, private request: Request, private router: Router) {
+    constructor(private storage: Storage, private request: Request, private router: Router, private alertCtrl: AlertController) {
       this.sessions = new Array<any>();
+      this.storage.get('nickname').then((nickname) => {
+        console.log(nickname)
+        if (nickname == null) {
+          let alert = this.alertCtrl.create({
+            inputs: [
+              {
+                name: 'nickname',
+                placeholder: 'nickname'
+              }
+            ],
+            buttons: [
+              {
+                text: 'Done',
+                handler: data => {
+                  this.storage.set('nickname', data.nickname);
+                }
+              }
+            ],
+            
+          }).then((al) => {
+            al.present();
+          })
+        }
+      })
     }
   
-  
+    SetNickname(nick) {
+      console.log(nick)
+      this.storage.set('nickname', nick);
+    }
+
     socketConnect() {
 
     }
