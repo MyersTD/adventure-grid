@@ -24,8 +24,18 @@ export class Request {
     public GetAllSessions(callback) {
         this.http.get('/api/sessions') 
             .subscribe((response) => {
-                console.log(response)
+                //console.log(response)
                 callback(Array<any>(response['_body']));
+            }), err => {
+                callback(null);
+            }
+    }
+
+    public GetTokenNames(callback) {
+        this.http.get('../assets/token-names.json')
+            .subscribe((response) => {
+                //console.log(response['_body'])
+                callback(Array<any>(JSON.parse(response['_body']))[0]);
             }), err => {
                 callback(null);
             }

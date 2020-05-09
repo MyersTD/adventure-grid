@@ -5,12 +5,22 @@ export class TokenCell implements ICell {
     _y: number;
     _icon: any;
     _color: any;
+    _name: any;
 
     constructor(x, y, icon, color) {
         this._x = x;
         this._y = y;
         this._icon = icon;
         this._color = color;
+        this._name = '';
+    }
+
+    FromData(cell: TokenCell) {
+        this._x = cell._x;
+        this._y = cell._y;
+        this._icon = cell._icon;
+        this._color = cell._color;
+        return this;
     }
 
     Draw(canvas) {
@@ -27,6 +37,11 @@ export class TokenCell implements ICell {
         canvas._contextEle.fill();
         canvas._contextEle.stroke();
         canvas._contextEle.drawImage(this._icon, this._x, this._y);  
+        if (this._name != '') {
+            canvas._contextEle.font = '10px Arial'
+            canvas._contextEle.fillStyle = 'black';
+            canvas._contextEle.fillText(this._name, this._x, this._y - 1);
+        }
     }
 
     Erase(canvas) {

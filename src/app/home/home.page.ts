@@ -71,7 +71,11 @@ export class HomePage {
             text: 'Done',
             handler: data => {
               this.request.CreateSession(id, data.name, (response) => {
-                this.router.navigate(['room', {'id': id, 'sname': data.name}]);
+                try {
+                  this.router.navigate(['room', {'id': id, 'sname': data.name}]);
+                } catch {
+                  console.log('no function')
+                }
               })
             }
           }

@@ -4,6 +4,7 @@ export interface ICell {
     Draw(canvas): void;
     Erase(canvas): void;
     TempErase?(canvas): void;
+    FromData?(cell: ICell): ICell;
 }
 
 export class Key {

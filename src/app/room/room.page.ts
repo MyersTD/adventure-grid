@@ -8,6 +8,8 @@ import CanvasManager from './canvas/canvas-manager/canvas-manager';
 import { SyncManager } from './sync/sync-manager'
 import { AlertController } from '@ionic/angular';
 
+const tokenDir = '../../assets/tokens';
+
 let squareSize = 30
 let debug = false;
 let baseHeight = 2048;
@@ -46,31 +48,27 @@ export class RoomPage {
       })
       this._canvasList = new Map<String, CanvasManager>();
       this._iconsList = new Array<any>();
-      this._iconsList.push(this.CreateImage('../../assets/tokens/empty.png', 'empty'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/arti.png', 'arti'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/barb.png', 'barb'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/bard.png', 'bard'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/cleric.png', 'cleric'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/druid.png', 'druid'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/fighter.png', 'fighter'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/monk.png', 'monk'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/paladin.png', 'paladin'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/ranger.png', 'ranger'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/rogue.png', 'rogue'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/sorc.png', 'sorc'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/wizard.png', 'wizard'))
-      this._iconsList.push(this.CreateImage('../../assets/tokens/warlock.png', 'warlock'))
+      this.CreateImages();
       this._mode = 'square';
       this._styleLeft = 0;
       this._styleTop = 0;
       this._chatManager = new ChatManager(this.storage, this.alertCtrl);
     }
   
-    CreateImage(src, id) {
+    CreateImage(src) {
       var img = new Image();
       img.src = src;
-      img.id = id;
       return img;
+    }
+
+    CreateImages() {
+      this.request.GetTokenNames((response) => {
+        if (response) {
+          response.files.forEach(file => {
+            this._iconsList.push(this.CreateImage(tokenDir + '/' + file))
+          })
+        }
+      })
     }
   
     Offset() {
@@ -113,13 +111,26 @@ export class RoomPage {
                 break;
             default:
               if (this._canvasList.has(this._mode)) {
-                this._canvasList.get(this._mode)._canvas.MouseUp(e);
+                try {
+                  this._canvasList.get(this._mode)._canvas.MouseUp(e);
+                } catch {}
               }
         }
     })
   
     this._canvasContainer.addEventListener('dblclick', e => {
       e.preventDefault();
+      switch(e.which) {
+        case 1:
+          if (this._canvasList.has(this._mode)) {
+            try {
+              this._canvasList.get(this._mode)._canvas.DoubleClick(e);
+            } catch {} // Do nothing if the function doesnt exist for this canvas
+          }
+          break;
+        default:
+          break;
+      }
       console.log('dbl click');
     })
   

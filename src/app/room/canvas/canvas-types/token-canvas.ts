@@ -1,6 +1,7 @@
 import { ICanvas } from '../interfaces/canvas-i';
 import { ICell, Key } from '../../cells/interface/cell-interface';
 import { TokenCell } from '../../cells/token-cell';
+import { AlertController } from '@ionic/angular';
 
 export class TokenCanvas implements ICanvas {
     _id: any;
@@ -9,13 +10,14 @@ export class TokenCanvas implements ICanvas {
     _squareSize: number;
     _width: number;
     _height: number;
-    _tokenMap: Map<string, ICell>;
+    _tokenMap: Map<string, TokenCell>;
     _grabbedToken: any;
     _isDragging: boolean;
     _lastDragX: any;
     _lastDragY: any;
     _currentIcon: any;
     _currentColor: any;
+    _name: any;
     _sync: any;
 
     GetSquarePos: (e, sqSz, w, h) => any;
@@ -29,7 +31,7 @@ export class TokenCanvas implements ICanvas {
         this._squareSize = sqSz;
         this._width = w;
         this._height = h;
-        this._tokenMap = new Map<string, ICell>();
+        this._tokenMap = new Map<string, TokenCell>();
         this.SetupListeners();
         this.GetSquarePos = getSqFunc;
     }
@@ -82,6 +84,37 @@ export class TokenCanvas implements ICanvas {
         }
      }
 
+     DoubleClick(e) {
+         let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
+         let key = new Key(pos.cornerX, pos.cornerY);
+         if (this._tokenMap.has(key.string())) {
+            let token = this._tokenMap.get(key.string());
+            let alert = new AlertController();
+            alert.create({
+                inputs: [
+                  {
+                    name: 'name',
+                    placeholder: 'Name'
+                  }
+                ],
+                buttons: [
+                  {
+                    text: 'Done',
+                    handler: data => {
+                      console.log(data.name)
+                      token._name = data.name;
+                      token.Erase(this);
+                      token.Draw(this);
+                    }
+                  }
+                ],
+                
+              }).then((al) => {
+                al.present();
+              })
+         }
+     }
+
      Draw(e) {
         let pos = this.GetSquarePos(e, this._squareSize, this._width, this._height);
         let key = new Key(pos.cornerX, pos.cornerY);
@@ -125,10 +158,12 @@ export class TokenCanvas implements ICanvas {
             } else {
                 let lastKey = new Key(this._lastDragX, this._lastDragY)
                 let lastToken = new TokenCell(lastKey.x, lastKey.y, this._grabbedToken._icon, this._grabbedToken._color);
+                lastToken._name = this._grabbedToken._name;
                 this.Publish(lastToken, 'remove');
                 this._tokenMap.delete(lastKey.string())
                 this._tokenMap.set(newKey.string(), this._grabbedToken)  
                 let token = new TokenCell(this._grabbedToken._x, this._grabbedToken._y, this._grabbedToken._icon, this._grabbedToken._color)
+                token._name = this._grabbedToken._name;
                 this.Publish(token, 'add');
             }
         }
@@ -154,6 +189,7 @@ export class TokenCanvas implements ICanvas {
                 icon.src = src;
                 icon.onload = () => {
                     let newCell = new TokenCell(cell._x, cell._y, icon, cell._color);
+                    newCell._name = cell._name;
                     let key = new Key(cell._x, cell._y);
                     this._tokenMap.set(key.string(), newCell);
                     newCell.Draw(this);
@@ -169,6 +205,7 @@ export class TokenCanvas implements ICanvas {
              icon.src = src;
              icon.onload = () => {
                 let cell = new TokenCell(data.cell._x, data.cell._y, icon, data.cell._color);
+                cell._name = data.cell._name;
                 let key = new Key(cell._x, cell._y);
                 if (data.mode == 'add') {
                     this._tokenMap.set(key.string(), cell);
@@ -190,7 +227,7 @@ export class TokenCanvas implements ICanvas {
      Publish(cell, mode) {
         let stringedCell = cell;
          if (cell != null) {
-            stringedCell = {_x: cell._x, _y: cell._y, _icon: cell._icon.src, _color: cell._color};
+            stringedCell = {_x: cell._x, _y: cell._y, _icon: cell._icon.src, _color: cell._color, _name: cell._name};
          } 
          this._sync.Publish(this._id, mode, stringedCell);
      }
