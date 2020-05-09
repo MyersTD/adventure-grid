@@ -6,37 +6,20 @@
 
 function createSession(req, db, callback) {
     var s_id = req.body.s_id;
-    var history = req.body.history;
+    var name = req.body.name;
     console.log(s_id)
     db.query(
-        `INSERT INTO sessions
-        (sessionid, history)
-        VALUES (${s_id}, '${history}')`,
+        `INSERT INTO session_info
+        (sid, sname)
+        VALUES (${s_id}, '${name}')`,
         (err, res) => {
             if (err) {
                 console.log(err);
                 callback(err, null);
             }
             else {
+                console.log('creating')
                 callback(null, res)
-            }
-        }
-    )
-}
-
-function getHistory(req, db, callback) {
-    var s_id = req.headers.s_id;
-    db.query(
-        `SELECT history 
-        FROM sessions
-        WHERE sessionid = ${s_id}`,
-        (err, res) => {
-            if (err) {
-                console.log(err);
-                callback(err, null);
-            }
-            else {
-                callback(null, res.rows);
             }
         }
     )
@@ -44,8 +27,8 @@ function getHistory(req, db, callback) {
 
 function getAllSessions(req, db, callback) {
     db.query(
-        `SELECT sessionid
-        FROM sessions`,
+        `SELECT sid, sname
+        FROM session_info`,
         (err, res) => {
             if (err) {
                 console.log(err);
@@ -58,27 +41,5 @@ function getAllSessions(req, db, callback) {
     )
 }
 
-function saveHistory(req, db, callback) {
-    var s_id = req.body.s_id;
-    var history = req.body.history;
-    var historyjson = JSON.stringify({history: history})
-    db.query(
-        `UPDATE sessions
-        SET history = '${historyjson}'
-        WHERE sessionid = ${s_id}`,
-        (err, res) => {
-            if (err) { 
-                console.log(err);
-                callback(err, null);
-            }
-            else {
-                callback(null, res);
-            }
-        }
-    )
-}
-
 exports.create = createSession;
-exports.history = getHistory;
-exports.save = saveHistory;
 exports.all = getAllSessions;

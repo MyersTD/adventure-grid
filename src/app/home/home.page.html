@@ -11,6 +11,8 @@
 
 <ion-content padding>
   <ion-row style="margin:auto" *ngFor="let session of sessions">
-    <ion-card (click)='enterServer($event, session)' class ="server-card">{{session.sessionid}}</ion-card>
+    <ion-button class ="server-card" (click)='enterServer($event, session)'>
+      {{session.sname}}
+    </ion-button>
   </ion-row>
 </ion-content>

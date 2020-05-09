@@ -10,30 +10,8 @@ export class Request {
         
     }
 
-    public SaveHistory(s_id, history, callback) {
-        var body = {s_id: s_id, history: history}
-        this.http.post('/api/save', body)
-            .subscribe((response) => {
-                callback(response)
-            }
-        ), err => {
-                callback(null)
-            }
-    }
-    public GetHistory(s_id, callback) {
-        var header = new Headers();
-        header.append('s_id', s_id);
-        header.append('Access-Control-Allow-Origin', '*');
-        var requestOpts = new RequestOptions({ headers: header });
-        this.http.get('/api/history', requestOpts)
-        .subscribe((response) => {
-            callback(response)
-        }, err => {
-            callback(null);
-        })
-    }
-    public CreateSession(s_id, history, callback) {
-        var body = {s_id: s_id, history: history}
+    public CreateSession(s_id, name, callback) {
+        var body = {s_id: s_id, name: name}
         this.http.post('/api/create', body)
             .subscribe((response) => {
                 callback(response);

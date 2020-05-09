@@ -19,7 +19,7 @@ export class HomePage {
       this.storage.get('nickname').then((nickname) => {
         console.log(nickname)
         if (nickname == null) {
-          let alert = this.alertCtrl.create({
+          this.alertCtrl.create({
             inputs: [
               {
                 name: 'nickname',
@@ -42,28 +42,43 @@ export class HomePage {
       })
     }
 
-    socketConnect() {
-
-    }
-
     ionViewDidEnter() : void 
     {
       this.request.GetAllSessions((data) => {
         if (data) {
           this.sessions = JSON.parse(data);
+          console.log(data);
         }
-        else {this.sessions.push({'sessionid': 'No sessions available'})}
+        else {this.sessions.push({'sid': 'No sessions available'})}
       })
     }
     
     enterServer(e, session) {
-      this.router.navigate(['room', {'id': session.sessionid}])
+      this.router.navigate(['room', {'id': session.sid, 'sname': session.sname}])
     }
 
     createSession() {
       let id = Math.floor(Math.random() * 100000000)
-      this.request.CreateSession(id, '', (response) => {
-        this.router.navigate(['room', {'id': id}]);
+      this.alertCtrl.create({
+        inputs: [
+          {
+            name: 'name',
+            placeholder: 'Server Name'
+          }
+        ],
+        buttons: [
+          {
+            text: 'Done',
+            handler: data => {
+              this.request.CreateSession(id, data.name, (response) => {
+                this.router.navigate(['room', {'id': id, 'sname': data.name}]);
+              })
+            }
+          }
+        ],
+        
+      }).then((al) => {
+        al.present();
       })
     }
 

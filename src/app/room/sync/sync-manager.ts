@@ -7,10 +7,10 @@ export class SyncManager {
     _socket: any;
     _session: any;
 
-    constructor(canvasMap) {
+    constructor(canvasMap, session) {
         this._canvasMap = canvasMap;
         this._socket = io('localhost:3001');
-        this._session = 12345;
+        this._session = session;
 
         this._socket.on('connect', () => {
             this._socket.emit('room', ''+this._session);

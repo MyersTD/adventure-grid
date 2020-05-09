@@ -1,112 +1,11 @@
-#container{
-  width:500px;
-  height:500px;
-  overflow:hidden;
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
-}
-
-#slide{
-  width: 100%;
-  height: 100%;
-  transition: transform .3s;
-}
-
-canvas {
-  border: lightgrey 1px solid;
-  border-radius: 5px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-  margin: auto;
-  position: fixed !important;
-  top:0;
-  right:0;
-  bottom:0;
-  left:0;
-  background-color: rgb(185, 180, 180);
-}
-
-.main-canvas {
-  background-color: transparent !important;
-}
-
-.palette-container {
-  height: 30px;
-  bottom: 5px;
-  left: 10px;
-  display: inline-block;
-  position: fixed !important;
-}
-
-.palette-button {
-  cursor: pointer;
-  box-sizing: border-box;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: none;
-  margin: 0 4px 0 0;
-  pointer-events: auto;
-  border-radius: 3px;
-  vertical-align: middle;
-  transition: height .1s linear,opacity .1s linear;
-  box-shadow: 2px 2px 2px rgba(0,0,0,.2);
-}
-
-.palette-button-selected {
-  height: 24px;
-  width: 24px;
-}
-
-.tool-container {
-  height: 340px;
-  width: 130px;
-  bottom: 40px;
-  left: 0;
-  margin-left: 10px;
-  border-radius: 5px;
-  display: inline-block;
-  position: fixed !important;
-}
-
-.tool-box {
-  display: inline-block;
-  position: relative;
-}
-
-.tool-button {
-  margin: auto;
-  margin-top: 12px;
-  color: white;
-  width: 120px;
-  border-radius: 20px;
-}
-
-.control-button {
-  font-size: 20px;
-}
-
 .server-card {
-  background-color: white;
+  background-color: transparent;
   color:black; 
   font-size: 24px; 
   margin:auto; 
   margin-top: 10px; 
+  width: 800px;
+  height: 80px;
   padding: 5px
 }
 

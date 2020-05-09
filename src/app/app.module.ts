@@ -10,8 +10,6 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { IonicStorageModule } from '@ionic/storage';
 import {HttpModule} from '@angular/http';
-//import { SocketIoConfig, SocketIoModule } from 'ngx-socket-io'
-//const config: SocketIoConfig = { url: '/socket/connect', options: {}};
 
 @NgModule({
   declarations: [AppComponent],

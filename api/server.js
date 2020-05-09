@@ -19,8 +19,8 @@ app.use(bodyParser.json())
 app.use(cors({credentials: true, origin: '*'}))
 app.use(methodOverride());
 
-
-require('./routes')(app, db)
+require('./routes')(app, db);
+require('./socket-server')(db);
 
 app.listen(port, () => {
     console.log(`API listening on port ${port}.`);

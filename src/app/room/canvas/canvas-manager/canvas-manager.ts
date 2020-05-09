@@ -71,7 +71,7 @@ function CalcSquarePos(e, sqSz, w, h) {
     }
 } 
 
-function CanvasFactory(id, height, width, squareSize, session) {
+function CanvasFactory(id, height, width, squareSize) {
     switch (id) {
         case 'background':
             return new BackgroundCanvas(id, squareSize, width, height, CalcSquarePos);
@@ -90,9 +90,9 @@ export default class CanvasManager {
     //_saveManager: SaveManager;
     _canvas: ICanvas;
     _parent: any;
-    constructor(parent, id, squareSize, width, height, session) {
+    constructor(parent, id, squareSize, width, height) {
         //this._saveManager = new SaveManager(this)
-        this._canvas = CanvasFactory(id, height, width, squareSize, session);
+        this._canvas = CanvasFactory(id, height, width, squareSize);
         this.SetStyle(this._canvas);
         this._parent = parent;
         this._parent.appendChild(this._canvas._canvasEle);
