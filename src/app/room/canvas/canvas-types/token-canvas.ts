@@ -177,6 +177,7 @@ export class TokenCanvas implements ICanvas {
             token.Erase(this);
             this.Publish(token, 'remove');
             this._tokenMap.delete(key.string());
+            this.DrawAll();
         }
      }
 
@@ -215,6 +216,7 @@ export class TokenCanvas implements ICanvas {
                         this._tokenMap.delete(key.string());
                     }
                     cell.Erase(this);
+                    this.DrawAll();
                 }
              }
          } 

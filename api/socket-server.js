@@ -59,7 +59,7 @@ module.exports = (db) => {
                     });
                     break;
             }
-            io.to(data.room).emit('sync load', data);
+            socket.broadcast.to(data.room).emit('sync load', data);
         })
     
         socket.on('sync all get', function(data) {
@@ -68,7 +68,7 @@ module.exports = (db) => {
                     Square.Load(data, db, (history) => {
                         if (history) {
                             let newData = {history: history, id: data.id}
-                            io.to(data.room).emit('sync all set', newData);
+                            socket.broadcast.to(data.room).emit('sync all set', newData);
                         } 
                     });
                     break;
@@ -76,7 +76,7 @@ module.exports = (db) => {
                     Line.Load(data, db, (history) => {
                         if (history) {
                             let newData = {history: history, id: data.id}
-                            io.to(data.room).emit('sync all set', newData);
+                            socket.broadcast.to(data.room).emit('sync all set', newData);
                         } 
                     });
                     break;
@@ -84,10 +84,18 @@ module.exports = (db) => {
                     Token.Load(data, db, (history) => {
                         if (history) {
                             let newData = {history: history, id: data.id}
-                            io.to(data.room).emit('sync all set', newData);
+                            socket.broadcast.to(data.room).emit('sync all set', newData);
                         } 
                     })
             }
+        })
+
+        socket.on('sync message send', function(data) {
+            socket.broadcast.to(data.room).emit('sync message received', data);
+        })
+
+        socket.on('sync roll send', function(data) {
+            socket.broadcast.to(data.room).emit('sync roll received', data);
         })
     }
     

@@ -4,6 +4,7 @@ import CanvasManager from '../canvas/canvas-manager/canvas-manager';
 
 export class SyncManager {
     _canvasMap: Map<string, CanvasManager>;
+    _chat: any;
     _socket: any;
     _session: any;
 
@@ -23,6 +24,14 @@ export class SyncManager {
             this._socket.on('sync all set', (data) => {
                 this.LoadHistory(data);
             })
+
+            this._socket.on('sync message received', (data) => {
+                this._chat.SubscribeMessage(data);
+            })
+
+            this._socket.on('sync roll received', (data) => {
+                this._chat.SubscribeRoll(data);
+            })
         })
 
         this._canvasMap.forEach(canvas => {
@@ -33,6 +42,16 @@ export class SyncManager {
         this.LoadAll('square');
         this.LoadAll('token');
         this.LoadAll('line');
+    }
+
+    SendMessage(nick, message) {
+        let data = {nickname: nick, message: message, room: this._session}
+        this._socket.emit('sync message send', data);
+    }
+
+    SendRoll(nick, message, answer) {
+        let data = {nickname: nick, message:message, roll: answer, room: this._session}
+        this._socket.emit('sync roll send', data);
     }
 
     Subscribe(data) {

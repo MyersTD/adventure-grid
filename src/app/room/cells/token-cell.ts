@@ -38,7 +38,7 @@ export class TokenCell implements ICell {
         canvas._contextEle.stroke();
         canvas._contextEle.drawImage(this._icon, this._x, this._y);  
         if (this._name != '') {
-            canvas._contextEle.font = '10px Arial'
+            canvas._contextEle.font = '14px Arial'
             canvas._contextEle.fillStyle = 'black';
             canvas._contextEle.fillText(this._name, this._x, this._y - 1);
         }

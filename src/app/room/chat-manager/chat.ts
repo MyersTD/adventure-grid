@@ -7,6 +7,7 @@ export class ChatManager {
     public hideRollBox = false;
 
     public nickName;
+    public sync;
 
     constructor(private storage: Storage, private alertCtrl: AlertController) {
         this.storage.get('nickname').then((nickname) => {
@@ -172,6 +173,29 @@ export class ChatManager {
         document.getElementById('roll-button').textContent = result;
     }
 
+    SubscribeMessage(data) {
+        const chatLog = document.getElementById('chat-log');
+        const item = document.createElement('ion-item');
+        const message = document.getElementById('message-template').cloneNode(false);
+
+        message.textContent = data.nickname + ': ' + data.message;
+        item.appendChild(message);
+        chatLog.appendChild(item);
+    }
+
+    SubscribeRoll(data) {
+        const chatLog = document.getElementById('chat-log');
+        const item = document.createElement('ion-item');
+        const message = document.getElementById('message-template').cloneNode(false);
+        const rollResult = document.getElementById('roll-result').cloneNode(false);
+
+        message.textContent = data.nickname + ': ' + data.message;
+        rollResult.textContent = data.roll;
+        item.appendChild(message);
+        item.appendChild(rollResult);
+        chatLog.appendChild(item);
+    }
+
     PostRoll(result: string, answer: string): void {
         const chatLog = document.getElementById('chat-log');
         const newRoll = document.createElement('ion-item');
@@ -186,6 +210,7 @@ export class ChatManager {
         newRoll.appendChild(message);
         newRoll.appendChild(rollResult);
         chatLog.appendChild(newRoll);
+        this.sync.SendRoll(this.nickName, result, answer);
     }
 
     PostMessage() {
@@ -203,6 +228,7 @@ export class ChatManager {
             // Append it to #chat-log
             item.appendChild(message);
             chatLog.appendChild(item);
+            this.sync.SendMessage(this.nickName, result);
 
             // Reset the message textarea field
             document.getElementById('message-text').setAttribute('value', '');

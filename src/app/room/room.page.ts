@@ -157,7 +157,9 @@ export class RoomPage {
       this._canvasList.set('grid', new CanvasManager(this._canvasContainer, 'grid', squareSize, baseWidth, baseHeight));
       this._canvasList.set('line', new CanvasManager(this._canvasContainer, 'line', squareSize, baseWidth, baseHeight));
       this.setColor('black');
-      new SyncManager(this._canvasList, this._sessionId);
+      let sync = new SyncManager(this._canvasList, this._sessionId);
+      sync._chat = this._chatManager;
+      this._chatManager.sync = sync;
       window.onscroll = (e) => {this.Offset();}
       window.onresize = (e) => {this.Offset();}
     }
